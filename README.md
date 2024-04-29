@@ -109,3 +109,6 @@ ziphus-alpha/
 - `@repo/shared-utils`: 前後端共用工具
 - `@repo/sketch-canvas`: 繪圖白板
 - `@repo/y-socket-io`: 基於 YJS 的 WebSocket 服務
+
+## 支持開發者與後續計畫?
+https://buymeacoffee.com/ray948787o
