@@ -4,7 +4,7 @@
 
 Run the following command:
 
-Ziphus Alpha API 是一個用於管理空間、卡片及帳號信息的後端服務，提供 RESTful API 和 WebSocket 通訊接口，支持多種數據操作，如用戶註冊、登錄、創建卡片等功能。
+Ziphus Alpha API 是一個結合了無限空間與結構化筆記的筆記網頁，支援同步編輯、即時協作
 
 ## 系統要求
 
