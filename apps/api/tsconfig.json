@@ -1,0 +1,14 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/**/*.test.ts"],
+  "exclude": ["node_modules"]
+}

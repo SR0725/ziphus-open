@@ -1,0 +1,5 @@
+.eslintrc.js
+*.config.js
+next-env.d.ts
+
+/coverage

@@ -1,0 +1,12 @@
+{
+  "name": "@repo/shared-utils",
+  "version": "0.0.1",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@repo/shared-types": "workspace:*",
+    "typescript": "latest",
+    "zod": "^3.22.4"
+  }
+}

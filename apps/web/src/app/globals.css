@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.gradient {
+  --size: 250px;
+  --speed: 50s;
+  --easing: cubic-bezier(0.8, 0.2, 0.2, 0.8);
+  width: var(--size);
+  height: var(--size);
+  filter: blur(calc(var(--size) / 5));
+  background-image: linear-gradient(rgba(55, 235, 169, 0.85), #5b37eb);
+  animation: rotate var(--speed) var(--easing) alternate infinite;
+  border-radius: 30% 70% 70% 30%/30% 30% 70% 70%;
+}
+
+@media (min-width: 720px) {
+  .gradient {
+    --size: 500px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .gradient {
+    --size: 1200px;
+  }
+}

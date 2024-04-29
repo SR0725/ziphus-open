@@ -1,0 +1,79 @@
+{
+  "name": "@repo/y-socket-io",
+  "version": "1.1.3",
+  "description": "Socket IO Connector for Yjs (Inspired by y-websocket)",
+  "keywords": [
+    "yjs",
+    "socket.io",
+    "y-socket.io",
+    "yjs-provider",
+    "yjs-connector"
+  ],
+  "author": "Iván Topp <ivan.topp.sandoval@gmail.com>",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    "./dist/server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.mjs",
+      "require": "./dist/server/index.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "y-socket-io-server": "./dist/server/server.js",
+    "y-socket-io": "./dist/server/server.js"
+  },
+  "files": [
+    "dist/**"
+  ],
+  "bugs": {
+    "url": "https://github.com/ivan-topp/y-socketio/issues"
+  },
+  "homepage": "https://github.com/ivan-topp/y-socketio/blob/main/README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ivan-topp/y-socketio"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch --onSuccess \"node dist/server/server.js\"",
+    "test": "npm run lint",
+    "example:server": "cd ./examples/server && npm install && npm run dev",
+    "example:client": "cd ./examples/react-example && npm install && npm run-script dev"
+  },
+  "ts-standard": {
+    "project": "./tsconfig.json",
+    "fix": false,
+    "ignore": [
+      "/dist",
+      "/node_modules",
+      "tsup.config.ts",
+      "/examples"
+    ]
+  },
+  "dependencies": {
+    "lib0": "^0.2.52",
+    "socket.io": "^4.5.1",
+    "socket.io-client": "^4.5.1",
+    "y-protocols": "^1.0.5",
+    "mongodb": "^6.5.0",
+    "y-mongodb-provider": "^0.1.9"
+  },
+  "devDependencies": {
+    "ts-standard": "^11.0.0",
+    "tsup": "^6.2.2",
+    "typescript": "^4.5.0",
+    "yjs": "^13.5.41"
+  },
+  "peerDependencies": {
+    "yjs": "^13.5.6"
+  }
+}

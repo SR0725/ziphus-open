@@ -1,0 +1,26 @@
+{
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    }
+  ],
+  "eslint.experimental.useFlatConfig": false,
+  "eslint.format.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "html",
+    "typescriptreact"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "cSpell.words": [
+    "fastify",
+    "nextui",
+    "socketio",
+    "sonner",
+    "tanstack",
+    "Ziphus"
+  ]
+}

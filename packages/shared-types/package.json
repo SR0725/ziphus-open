@@ -1,0 +1,19 @@
+{
+  "name": "@repo/shared-types",
+  "version": "0.0.1",
+  "exports": {
+    ".": "./dist/index.js",
+    "./types": "./dist/types.d.ts"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs --dts",
+    "dev": "tsup src/index.ts --format cjs --watch --onSuccess \"node dist/index.js\""
+  },
+  "dependencies": {
+    "typescript": "latest",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.2"
+  }
+}

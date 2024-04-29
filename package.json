@@ -1,0 +1,24 @@
+{
+  "name": "ziphus-alpha",
+  "private": true,
+  "scripts": {
+    "build": "dotenv -e .env -- turbo build",
+    "dev": "dotenv -e .env -- turbo dev",
+    "start": "dotenv -e .env -- turbo start",
+    "type-check": "turbo type-check",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "test": "turbo test"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "dotenv-cli": "^7.4.1",
+    "prettier": "^3.2.5",
+    "turbo": "1.12.5"
+  },
+  "packageManager": "pnpm@8.9.0",
+  "engines": {
+    "node": ">=18"
+  }
+}
