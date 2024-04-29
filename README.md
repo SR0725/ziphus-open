@@ -1,4 +1,10 @@
-# 專案名稱：Ziphus Alpha API
+# 專案名稱：Ziphus Alpha
+
+## 社群
+有任何想法?
+想直接使用這個平台?
+直接到 Ziphus 的官方 Discord 社群
+[https://discord.gg/h9CfzNwXfy](https://discord.gg/h9CfzNwXfy)
 
 ## 專案概述
 
