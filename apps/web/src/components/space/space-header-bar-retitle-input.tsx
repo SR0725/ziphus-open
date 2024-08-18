@@ -4,8 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import useQuerySpaceById from "@/hooks/space/useQuerySpaceById";
 import useUpdateSpaceTitle from "@/hooks/space/useUpdateSpaceTitle";
+import { cn } from "@/utils/cn";
 
-function SpaceHeaderBarRetitleInput() {
+interface SpaceHeaderBarRetitleInputProps {
+  inputClassName?: string;
+  buttonClassName?: string;
+}
+
+function SpaceHeaderBarRetitleInput({
+  inputClassName,
+  buttonClassName,
+}: SpaceHeaderBarRetitleInputProps) {
   const { id } = useParams();
   const { space } = useQuerySpaceById(id as string);
   const [showRetitleInput, setShowRetitleInput] = useState(false);
@@ -44,7 +53,10 @@ function SpaceHeaderBarRetitleInput() {
               setNewTitle(space?.title || "");
             }
           }}
-          className="h-fit w-full border-none bg-[#0E0E0E] text-white"
+          className={cn(
+            "h-fit w-fit lg:w-full border-none bg-white dark:bg-[#0E0E0E] text-black dark:text-white",
+            inputClassName
+          )}
         />
       ) : (
         <button
@@ -52,7 +64,14 @@ function SpaceHeaderBarRetitleInput() {
             setShowRetitleInput(true);
             setTimeout(() => inputRef.current?.focus(), 0);
           }}
-          className="cursor-pointer text-white opacity-80 hover:opacity-100"
+          onTouchStart={() => {
+            setShowRetitleInput(true);
+            setTimeout(() => inputRef.current?.focus(), 0);
+          }}
+          className={cn(
+            "cursor-pointer text-black opacity-80 hover:opacity-100 dark:text-white",
+            buttonClassName
+          )}
         >
           {newTitle || "Untitled"}
         </button>

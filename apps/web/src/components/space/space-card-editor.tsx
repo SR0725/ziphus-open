@@ -1,117 +1,116 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { SpaceCardDTO } from "@repo/shared-types";
-import useUpdateSpaceCardPosition from "@/hooks/space/useUpdateSpaceCardPosition";
+import useGetSpaceCard from "@/hooks/space/useGetSpaceCard";
+import useSpaceCardDragCase from "@/hooks/space/useSpaceCardDragCase";
+import useSpaceCardFocusCase from "@/hooks/space/useSpaceCardFocusCase";
+import useSpaceCardTransformUpdate from "@/hooks/space/useSpaceCardTransformUpdate";
+import useUpdateSpaceCardPositionCase from "@/hooks/space/useUpdateSpaceCardPositionCase";
 import useDraggable from "@/hooks/useDraggable";
-import { View } from "@/models/view";
+import useEditorStore from "@/stores/useEditorStore";
+import useSpaceStore from "@/stores/useSpaceStore";
 import { cn } from "@/utils/cn";
-
-// 隨時更新位置
-const useTransformUpdate = (
-  spaceCardHTMLElementRef: React.RefObject<HTMLDivElement>,
-  spaceCardDataRef: React.MutableRefObject<SpaceCardDTO>
-) => {
-  const lastPositionRef = useRef<{
-    x: number;
-    y: number;
-  }>({
-    x: 0,
-    y: 0,
-  });
-  useEffect(() => {
-    let animationFrameId = 0;
-    function handleViewChange() {
-      animationFrameId = requestAnimationFrame(handleViewChange);
-      const spaceCardElement = spaceCardHTMLElementRef.current;
-      if (!spaceCardElement) return;
-      if (
-        lastPositionRef.current.x === spaceCardDataRef.current.x &&
-        lastPositionRef.current.y === spaceCardDataRef.current.y
-      ) {
-        return;
-      }
-
-      spaceCardElement.style.transform = `translateX(${spaceCardDataRef.current.x}px) translateY(${spaceCardDataRef.current.y}px)`
-      lastPositionRef.current = { ...spaceCardDataRef.current };
-    }
-    handleViewChange();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
-};
+import SpaceCardEditorLinkManager from "./space-card-editor-link";
 
 interface SpaceCardEditorProps extends React.HTMLAttributes<HTMLDivElement> {
-  initialSpaceCard: SpaceCardDTO;
-  isFocus: boolean;
-  viewRef: React.MutableRefObject<View>;
-  layers: string[];
+  spaceCardId: string;
 }
 
 function SpaceCardEditor({
-  initialSpaceCard,
-  isFocus,
-  viewRef,
+  spaceCardId,
   children,
-  layers,
   style,
   className,
   ...props
 }: SpaceCardEditorProps) {
-  const spaceCardHTMLElementRef = useRef<HTMLDivElement>(null);
-  const spaceCardDataRef = useRef<SpaceCardDTO>(initialSpaceCard);
-  const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(0);
+  const [currentLayerIndex, setCurrentLayerIndex] = useState(-1);
+  const getSpaceCard = useGetSpaceCard();
+  const { layers } = useSpaceStore(
+    useShallow((state) => ({
+      layers: state.layers,
+    }))
+  );
   useEffect(() => {
-    const layerIndex = layers.findIndex(
-      (layer) => layer === initialSpaceCard.id
-    );
+    const spaceCard = getSpaceCard(spaceCardId);
+    if (!spaceCard) return;
+    const layerIndex = layers.findIndex((l) => l === spaceCard.id);
+    if (layerIndex < 0) return;
     setCurrentLayerIndex(layerIndex);
-  }, [layers, initialSpaceCard.id]);
+  }, [spaceCardId, layers]);
 
-  useTransformUpdate(spaceCardHTMLElementRef, spaceCardDataRef);
+  const isFocus = useEditorStore(
+    (state) => state.focusSpaceCardId === spaceCardId
+  );
 
-  const { handleUpdatePosition } = useUpdateSpaceCardPosition(spaceCardDataRef);
+  const spaceCardHTMLElementRef = useRef<HTMLDivElement>(null);
+  const handleUpdatePosition = useUpdateSpaceCardPositionCase(spaceCardId);
+  const { handleDragCard, handleEndDragAllCard } = useSpaceCardDragCase();
+  const { handleFocusCard } = useSpaceCardFocusCase();
 
   useDraggable({
     available: !isFocus,
     draggableItemRef: spaceCardHTMLElementRef,
-    onDrag: ({ deltaX, deltaY, event }) => {
+    onDrag: ({ deltaX, deltaY }) => {
       if (isFocus) return;
-      spaceCardDataRef.current = {
-        ...spaceCardDataRef.current,
-        x: spaceCardDataRef.current.x + deltaX / viewRef.current.scale,
-        y: spaceCardDataRef.current.y + deltaY / viewRef.current.scale,
-      };
+      const view = useEditorStore.getState().view;
+      const spaceCard = useSpaceStore
+        .getState()
+        .spaceCards.find((sc) => sc.id === spaceCardId)!;
+
+      handleDragCard(spaceCardId);
       handleUpdatePosition({
-        spaceId: spaceCardDataRef.current.targetSpaceId,
-        spaceCardId: spaceCardDataRef.current.id,
-        x: spaceCardDataRef.current.x,
-        y: spaceCardDataRef.current.y,
+        spaceId: spaceCard.targetSpaceId,
+        spaceCardId: spaceCardId,
+        x: spaceCard.x + deltaX / view.scale,
+        y: spaceCard.y + deltaY / view.scale,
       });
+    },
+    onDragEnd: () => {
+      handleEndDragAllCard();
     },
   });
 
+  useSpaceCardTransformUpdate(spaceCardHTMLElementRef, spaceCardId);
+
   return (
-    <div
-      className={cn(
-        "space-card absolute h-fit w-fit rounded-lg bg-dark-card-bg shadow-md",
-        isFocus
-          ? "outline outline-4 outline-white "
-          : "cursor-pointer outline outline-1 outline-white ",
-        className
-      )}
-      style={{
-        ...style,
-        zIndex: currentLayerIndex,
-      }}
-      {...props}
-      ref={spaceCardHTMLElementRef}
-      id={initialSpaceCard.id}
-    >
-      {children}
-    </div>
+    <>
+      <div
+        className={cn(
+          "space-card bg-white-card-bg absolute h-fit w-fit rounded-lg shadow-sm dark:shadow-md dark:bg-dark-card-bg",
+          isFocus
+            ? "outline outline-4 dark:outline-white outline-gray-400"
+            : "cursor-pointer outline outline-1 dark:outline-white outline-gray-400",
+          className
+        )}
+        style={{
+          ...style,
+          zIndex: currentLayerIndex,
+        }}
+        {...props}
+        ref={spaceCardHTMLElementRef}
+        onClick={(event) => {
+          const draggingSpaceCardList =
+            useEditorStore.getState().draggingSpaceCardList;
+          if (
+            draggingSpaceCardList &&
+            draggingSpaceCardList.includes(spaceCardId)
+          )
+            return;
+          // 聚焦卡片
+          handleFocusCard(spaceCardId);
+          // 阻止預設事件
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        id={spaceCardId}
+      >
+        {children}
+        {/** link dot */}
+        <SpaceCardEditorLinkManager spaceCardId={spaceCardId} />
+      </div>
+    </>
   );
 }
 

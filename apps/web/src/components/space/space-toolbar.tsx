@@ -1,92 +1,64 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { FaApple } from "react-icons/fa";
+import { FaLink } from "react-icons/fa";
 import { FaEraser, FaPencil } from "react-icons/fa6";
 import { IoDocumentTextOutline } from "react-icons/io5";
-import {
-  EditMode,
-  SketchMode,
-  PencilInfo,
-  EraserInfo,
-} from "@/components/card/card-editor-sketch-panel";
-import useCreateCard from "@/hooks/card/useCreateCard";
-import useCreateSpaceCard from "@/hooks/space/useCreateSpaceCard";
-import useDeleteSpaceCard from "@/hooks/space/useDeleteSpaceCard";
-import { SpaceWithFullData } from "@/hooks/space/useQuerySpaceWithFullData";
-import { View } from "@/models/view";
+import { useShallow } from "zustand/react/shallow";
+import useDeleteSpaceCardLinkCase from "@/hooks/space/useDeleteSpaceCardLinkCase";
+import useCanvasEditor from "@/hooks/useCanvasEditor";
+import useEditorStore from "@/stores/useEditorStore";
 import ToolbarItemAddCardButton from "./space-toolbar-add-card-button";
+import ToolbarItemAddSpaceCardByPdfButton from "./space-toolbar-add-space-card-by-pdf";
+import ToolbarItemAddSpaceCardByWebButton from "./space-toolbar-add-space-card-by-web";
 import ToolbarItemDeleteCardButton from "./space-toolbar-delete-card-button";
+import ToolbarItemDeleteLinkButton from "./space-toolbar-delete-link-button";
 import ToolbarItemButton from "./space-toolbar-item-button";
 import SpaceToolbarLayerEraser from "./space-toolbar-layer-eraser";
 import SpaceToolbarLayerPencil from "./space-toolbar-layer-pencil";
-import ToolbarItemPositionDeLockButton from "./space-toolbar-position-delock-button";
 
 interface SpaceToolbarProps {
-  focusSpaceCardId: string | null;
-  isPositionLocked: boolean;
-  setIsPositionLocked: (isLocked: boolean) => void;
-  isUseApplePencil: boolean;
-  setIsUseApplePencil: (isUse: boolean) => void;
-  editMode: EditMode;
-  setEditMode: (mode: EditMode) => void;
-  sketchMode: SketchMode;
-  setSketchMode: (mode: SketchMode) => void;
-  pencilInfo: PencilInfo;
-  setPencilInfo: (info: PencilInfo) => void;
-  eraserInfo: EraserInfo;
-  setEraserInfo: (info: EraserInfo) => void;
-  mutateCreateSpaceCard: ReturnType<typeof useCreateSpaceCard>;
-  mutateCreateCard: ReturnType<typeof useCreateCard>;
-  mutateDeleteSpaceCard: ReturnType<typeof useDeleteSpaceCard>;
-  space: SpaceWithFullData;
-  setSpace: (space: SpaceWithFullData) => void;
-  viewRef: React.MutableRefObject<View>;
   editorRef: React.RefObject<HTMLDivElement>;
+  canvasEditorSettings: ReturnType<typeof useCanvasEditor>;
 }
-function SpaceToolbar({
-  focusSpaceCardId,
-  isPositionLocked,
-  setIsPositionLocked,
-  isUseApplePencil,
-  setIsUseApplePencil,
-  editMode,
-  setEditMode,
-  sketchMode,
-  setSketchMode,
-  pencilInfo,
-  setPencilInfo,
-  eraserInfo,
-  setEraserInfo,
-  mutateCreateSpaceCard,
-  mutateCreateCard,
-  mutateDeleteSpaceCard,
-  space,
-  setSpace,
-  viewRef,
-  editorRef,
-}: SpaceToolbarProps) {
-  const [selectedId, setSelectedId] = useState(0);
 
-  useEffect(() => {
-    if (!focusSpaceCardId) {
-      setEditMode("text");
-      setSelectedId(0);
-    }
-    if (editMode === "text") {
-      setSelectedId(0);
-    } else if (editMode === "sketch" && sketchMode === "pencil") {
-      setSelectedId(1);
-    } else if (editMode === "sketch" && sketchMode === "eraser") {
-      setSelectedId(2);
-    }
-  }, [focusSpaceCardId, editMode, sketchMode]);
+function SpaceToolbarCanvasSetting({
+  canvasEditorSettings,
+}: SpaceToolbarProps) {
+  const { focusSpaceCardId } = useEditorStore(
+    useShallow((state) => ({
+      focusSpaceCardId: state.focusSpaceCardId,
+    }))
+  );
+  const {
+    editMode,
+    setEditMode,
+    isUseApplePencil,
+    setIsUseApplePencil,
+    sketchMode,
+    setSketchMode,
+    eraserInfo,
+    setEraserInfo,
+    pencilInfo,
+    setPencilInfo,
+  } = canvasEditorSettings;
 
   return (
     <>
       {/** 第一層 */}
-      <div className="absolute right-2 top-1/2 z-50 flex h-fit w-fit -translate-y-1/2 flex-col items-center">
-        {/**  鉛筆 -1 */}
+      <>
+        {/** 文字編輯 */}
+        {focusSpaceCardId && (
+          <ToolbarItemButton
+            isFocused={editMode === "text"}
+            onClick={(event) => {
+              event.stopPropagation();
+              setEditMode("text");
+            }}
+          >
+            <IoDocumentTextOutline />
+          </ToolbarItemButton>
+        )}
+        {/**  Apple Pencil Only */}
         {focusSpaceCardId && editMode === "sketch" && (
           <ToolbarItemButton
             isFocused={isUseApplePencil}
@@ -102,80 +74,36 @@ function SpaceToolbar({
             </span>
           </ToolbarItemButton>
         )}
-        {/** 文字編輯 0 */}
+        {/**  鉛筆 */}
         {focusSpaceCardId && (
           <ToolbarItemButton
-            isFocused={selectedId === 0}
-            onClick={(event) => {
-              event.stopPropagation();
-              setEditMode("text");
-            }}
-          >
-            <IoDocumentTextOutline />
-          </ToolbarItemButton>
-        )}
-        {/**  鉛筆 1 */}
-        {focusSpaceCardId && (
-          <ToolbarItemButton
-            isFocused={selectedId === 1}
+            isFocused={editMode === "sketch" && sketchMode === "pencil"}
             onClick={(event) => {
               event.stopPropagation();
               setEditMode("sketch");
               setSketchMode("pencil");
-              setIsPositionLocked(true);
             }}
           >
             <FaPencil />
           </ToolbarItemButton>
         )}
-        {/** 橡皮擦 2 */}
+        {/** 橡皮擦 */}
         {focusSpaceCardId && (
           <ToolbarItemButton
-            isFocused={selectedId === 2}
+            isFocused={editMode === "sketch" && sketchMode === "eraser"}
             onClick={(event) => {
               event.stopPropagation();
               setEditMode("sketch");
               setSketchMode("eraser");
-              setIsPositionLocked(true);
             }}
           >
             <FaEraser />
           </ToolbarItemButton>
         )}
-        {/** 新增題目 3 */}
-        {!focusSpaceCardId && (
-          <ToolbarItemAddCardButton
-            viewRef={viewRef}
-            mutateCreateSpaceCard={mutateCreateSpaceCard}
-            mutateCreateCard={mutateCreateCard}
-            setSpace={setSpace}
-            space={space}
-            editorRef={editorRef}
-            setIsPositionLocked={setIsPositionLocked}
-            isPositionLocked={isPositionLocked}
-          />
-        )}
-        {/** 取消位置聚焦 3 */}
-        {isPositionLocked && (
-          <ToolbarItemPositionDeLockButton
-            isPositionLocked={isPositionLocked}
-            setIsPositionLocked={setIsPositionLocked}
-          />
-        )}
-        {/** 刪除題目 4 */}
-        {focusSpaceCardId && (
-          <ToolbarItemDeleteCardButton
-            mutateDeleteSpaceCard={mutateDeleteSpaceCard}
-            focusSpaceCardId={focusSpaceCardId}
-            setSpace={setSpace}
-            space={space}
-          />
-        )}
-      </div>
-
+      </>
       {/** 第二層 */}
       <div
-        className="absolute right-16 top-1/2 z-50 flex h-fit w-fit -translate-y-1/2 flex-col items-center"
+        className="absolute right-14 top-1/2 z-50 flex h-fit w-fit -translate-y-1/2 flex-col items-center"
         onClick={(e) => e.stopPropagation()}
       >
         {editMode === "sketch" && sketchMode === "pencil" && (
@@ -190,6 +118,64 @@ function SpaceToolbar({
             setEraserInfo={setEraserInfo}
           />
         )}
+      </div>
+    </>
+  );
+}
+
+function SpaceToolbar(props: SpaceToolbarProps) {
+  const { editorRef } = props;
+  const { focusSpaceCardId, isFocusLinkDot, focusLinkLine } = useEditorStore(
+    useShallow((state) => ({
+      focusSpaceCardId: state.focusSpaceCardId,
+      isFocusLinkDot: state.draggingLinkData.isFocusLinkDot,
+      focusLinkLine: state.focusLinkLine,
+    }))
+  );
+
+  const changeSetFocusLinkDot = () => {
+    useEditorStore.setState({
+      draggingLinkData: {
+        ...useEditorStore.getState().draggingLinkData,
+        isFocusLinkDot: !isFocusLinkDot,
+      },
+    });
+  };
+
+  const mutate = useDeleteSpaceCardLinkCase();
+
+  return (
+    <>
+      {/** 第一層 */}
+      <div className="absolute right-2 top-1/2 z-50 flex h-fit w-fit -translate-y-1/2 flex-col items-center">
+        <SpaceToolbarCanvasSetting {...props} />
+        {/** 透過 網址生成卡片串 */}
+        {!focusSpaceCardId && <ToolbarItemAddSpaceCardByWebButton />}
+        {/** 新增題目 */}
+        {!focusSpaceCardId && (
+          <ToolbarItemAddCardButton editorRef={editorRef} />
+        )}
+        {/** 鏈結題目 */}
+        <ToolbarItemButton
+          isFocused={isFocusLinkDot}
+          onClick={(event) => {
+            event.stopPropagation();
+            changeSetFocusLinkDot();
+          }}
+        >
+          <FaLink />
+        </ToolbarItemButton>
+        {/** 取消位置聚焦 */}
+        {/* {isPositionLocked && (
+          <ToolbarItemPositionDeLockButton
+            isPositionLocked={isPositionLocked}
+            setIsPositionLocked={setIsPositionLocked}
+          />
+        )} */}
+        {/** 刪除題目 */}
+        {focusSpaceCardId && <ToolbarItemDeleteCardButton />}
+        {/** 刪除連結 */}
+        {focusLinkLine && <ToolbarItemDeleteLinkButton />}
       </div>
     </>
   );

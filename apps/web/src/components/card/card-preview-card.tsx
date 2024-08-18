@@ -116,7 +116,7 @@ function CardPreviewCard({ card }: CardPreviewCardProps) {
         <h1 className="text-2xl font-bold text-[#A1A1A1]">{title}</h1>
         <p
           className="mt-2 overflow-hidden text-[#919191]"
-          dangerouslySetInnerHTML={{ __html: card.content }}
+          dangerouslySetInnerHTML={{ __html: card.snapshotContent }}
         ></p>
       </div>
     </CardPreviewCardContainer>

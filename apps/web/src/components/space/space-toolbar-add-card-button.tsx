@@ -3,37 +3,28 @@
 import { useRef, useState } from "react";
 import { MdLibraryAdd } from "react-icons/md";
 import useCreateCard from "@/hooks/card/useCreateCard";
-import useCreateSpaceCard from "@/hooks/space/useCreateSpaceCard";
-import { SpaceWithFullData } from "@/hooks/space/useQuerySpaceWithFullData";
+import useCreateSpaceCardCase from "@/hooks/space/useCreateSpaceCardCase";
+import useViewLockCase from "@/hooks/space/useViewLockCase";
 import useDraggable from "@/hooks/useDraggable";
-import { View } from "@/models/view";
+import useEditorStore from "@/stores/useEditorStore";
+import useSpaceStore from "@/stores/useSpaceStore";
 import { cn } from "@/utils/cn";
 import transformMouseClientPositionToViewPosition from "@/utils/space/transformMouseClientPositionToViewPosition";
 import ToolbarItemButton from "./space-toolbar-item-button";
 
-
 interface ToolbarItemAddCardButtonProps {
-  mutateCreateSpaceCard: ReturnType<typeof useCreateSpaceCard>;
-  mutateCreateCard: ReturnType<typeof useCreateCard>;
-  space: SpaceWithFullData;
-  setSpace: (space: SpaceWithFullData) => void;
-  viewRef: React.MutableRefObject<View>;
   editorRef: React.RefObject<HTMLDivElement>;
-  setIsPositionLocked: (isLocked: boolean) => void;
-  isPositionLocked: boolean;
 }
 
 export default function ToolbarItemAddCardButton({
-  mutateCreateSpaceCard,
-  mutateCreateCard,
-  space,
-  setSpace,
-  viewRef,
   editorRef,
-  setIsPositionLocked,
-  isPositionLocked,
 }: ToolbarItemAddCardButtonProps) {
-  const ref = useRef<HTMLButtonElement>(null);
+  const spaceId = useSpaceStore((state) => state.id);
+  const mutateCreateCard = useCreateCard();
+  const mutateCreateSpaceCard = useCreateSpaceCardCase();
+  const { isViewLocked, setIsViewLocked } = useViewLockCase();
+
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const draggingShadowRef = useRef<HTMLDivElement>(null);
   const [draggingStartPosition, setDraggingStartPosition] = useState<{
     x: number;
@@ -43,18 +34,18 @@ export default function ToolbarItemAddCardButton({
   const [originPositionLocked, setOriginPositionLocked] = useState(false);
 
   useDraggable({
-    draggableItemRef: ref,
+    draggableItemRef: buttonRef,
     containerRef: editorRef,
     onDragStart({ x, y }) {
       setDraggingStartPosition({ x, y });
       setAvailableAddCard(false);
-      setOriginPositionLocked(isPositionLocked);
-      setIsPositionLocked(true);
+      setOriginPositionLocked(isViewLocked);
+      setIsViewLocked(true);
     },
     onDragEnd({ x, y }) {
       if (!draggingStartPosition) return;
       setAvailableAddCard(true);
-      setIsPositionLocked(originPositionLocked);
+      setIsViewLocked(originPositionLocked);
       setDraggingStartPosition(null);
       if (
         Math.abs(x - draggingStartPosition.x) < 32 &&
@@ -64,23 +55,12 @@ export default function ToolbarItemAddCardButton({
       }
       mutateCreateCard.mutate(undefined, {
         onSuccess: (data) => {
-          const view = viewRef.current;
-          mutateCreateSpaceCard.mutate(
-            {
-              spaceId: space!.id,
-              targetCardId: data.data.card.id,
-              ...transformMouseClientPositionToViewPosition(view, x, y),
-            },
-            {
-              onSuccess: (data: any) => {
-                console.log("新增卡片成功", data.data);
-                setSpace({
-                  ...space!,
-                  spaceCards: [...space!.spaceCards, data.data.spaceCard],
-                });
-              },
-            }
-          );
+          const view = useEditorStore.getState().view;
+          mutateCreateSpaceCard.mutate({
+            spaceId: spaceId,
+            targetCardId: data.data.card.id,
+            ...transformMouseClientPositionToViewPosition(view, x, y),
+          });
         },
         onError: (error) => {
           console.error("新增卡片失敗", error);
@@ -105,7 +85,7 @@ export default function ToolbarItemAddCardButton({
   return (
     <>
       <div className=" relative">
-        <ToolbarItemButton ref={ref} isFocused={false}>
+        <ToolbarItemButton ref={buttonRef} isFocused={false}>
           <MdLibraryAdd />
         </ToolbarItemButton>
         <div

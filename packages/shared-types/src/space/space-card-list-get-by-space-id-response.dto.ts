@@ -4,14 +4,11 @@ import { cardDtoSchema } from "..";
 
 export const SpaceCardListGetBySpaceIdResponseDTOSchema = z.object({
   spaceCards: z.array(
-    z.object({
-      id: z.string(),
-      targetCardId: z.string(),
-      targetSpaceId: z.string(),
-      x: z.number(),
-      y: z.number(),
-      card: cardDtoSchema.nullable(),
-    })
+    z
+      .object({
+        card: cardDtoSchema.nullable(),
+      })
+      .merge(SpaceCardDTOSchema)
   ),
 });
 

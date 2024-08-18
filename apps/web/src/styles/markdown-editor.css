@@ -1,0 +1,144 @@
+:root {
+  --font-size-h1: 2em;
+  --font-size-h2: 1.7em;
+  --font-size-h3: 1.3em;
+  --font-weight-heading: 700;
+}
+
+.markdown-render *,
+.markdown-render *:before,
+.markdown-render *:after {
+  -webkit-box-sizing: inherit;
+  -moz-box-sizing: inherit;
+  box-sizing: inherit;
+}
+.markdown-render p,
+.markdown-render h1,
+.markdown-render h2,
+.markdown-render h3,
+.markdown-render li {
+  all: unset;
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  min-width: 2px !important;
+}
+.markdown-render {
+  font-size: 16px;
+  font-weight: 400;
+  font-family:
+    Inter,
+    SF Pro Display,
+    -apple-system,
+    BlinkMacSystemFont,
+    Open Sans,
+    Segoe UI,
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    Fira Sans,
+    Droid Sans,
+    Helvetica Neue,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.markdown-render h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-heading);
+  position: relative;
+}
+.markdown-render h1::before {
+  content: " ";
+  position: absolute;
+  width: 4px;
+  height: 1.2em;
+  background-color: #000;
+  left: -16px;
+  top: 0.2em;
+}
+.markdown-render h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-heading);
+}
+.markdown-render h3 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-heading);
+}
+
+.markdown-render ul {
+  list-style-type: none;
+  padding-inline: 0;
+}
+
+.markdown-render ul > li {
+  display: flex;
+  gap: 1.2em;
+}
+
+.markdown-render ul > li:before {
+  content: "•";
+}
+
+.markdown-render ul ul > li:before {
+  content: "◦";
+}
+
+.markdown-render ul ul ul > li:before {
+  content: "▪";
+}
+
+.markdown-render ol {
+  list-style-type: none;
+  padding-inline: 0;
+}
+
+.markdown-render ol > li {
+  display: flex;
+  gap: 1.2em;
+}
+
+.markdown-render ol > li:before {
+  content: attr(data-index) ".";
+}
+.markdown-render table {
+  width: auto !important;
+}
+.markdown-render th,
+.markdown-render td {
+  min-width: 1em;
+  border: 1px solid #ddd;
+  padding: 3px 5px;
+}
+.markdown-render .tableWrapper {
+  margin: 1em 0;
+}
+.markdown-render th {
+  font-weight: 700;
+  text-align: left;
+}
+
+[data-level="1"] {
+  --level: var(--font-size-h1) !important;
+}
+[data-level="2"] {
+  --level: var(--font-size-h2) !important;
+}
+[data-level="3"] {
+  --level: var(--font-size-h3) !important;
+}
+
+.bn-block-content[data-level="1"] > h1 {
+  position: relative;
+}
+
+.bn-block-content[data-level="1"] > h1::before {
+  content: " ";
+  position: absolute;
+  width: 4px;
+  height: 1.2em;
+  background-color: #000;
+  left: -16px;
+  top: 0.2em;
+}

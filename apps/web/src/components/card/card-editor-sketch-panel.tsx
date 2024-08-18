@@ -26,7 +26,7 @@ export interface EraserInfo {
 }
 
 interface CardEditorDrawingPanelProps {
-  isSketching: boolean;
+  isActive: boolean;
   cardId: string;
   accountName: string;
   isUseApplePencil: boolean;
@@ -37,7 +37,7 @@ interface CardEditorDrawingPanelProps {
 }
 
 function CardEditorSketchPanel({
-  isSketching,
+  isActive,
   cardId,
   accountName,
   isUseApplePencil,
@@ -109,44 +109,33 @@ function CardEditorSketchPanel({
   }, [dataFrame]);
 
   return (
-    <>
-      <button
-        className="absolute right-2 top-2 z-20 h-8 w-20 rounded-md bg-white/10 text-white"
-        onClick={() => {
-          yStrokes.delete(0, yStrokes.length);
-          originalRenderStrokesRef.current = [];
-        }}
-      >
-        清除塗鴉
-      </button>
-      <SketchCanvas
-        id="sketch"
-        provider={sketchCanvasProvider}
-        className="absolute left-0 top-0 z-10 h-full w-full"
-        style={{ pointerEvents: isSketching ? "auto" : "none" }}
-        handleStartDraw={(x, y, pressure) => {
-          if (sketchMode === "pencil") {
-            handleStartDraw(x, y, pressure);
-          } else {
-            handleStartErase(x, y);
-          }
-        }}
-        handleMoveDraw={(x, y, pressure) => {
-          if (sketchMode === "pencil") {
-            handleMoveDraw(x, y, pressure);
-          } else {
-            handleMoveErase(x, y);
-          }
-        }}
-        handleEndDraw={() => {
-          if (sketchMode === "pencil") {
-            handleEndDraw();
-          } else {
-            handleEndErase();
-          }
-        }}
-      />
-    </>
+    <SketchCanvas
+      id="sketch"
+      provider={sketchCanvasProvider}
+      className="absolute left-0 top-0 z-10 h-full w-full"
+      style={{ pointerEvents: isActive ? "auto" : "none" }}
+      handleStartDraw={(x, y, pressure) => {
+        if (sketchMode === "pencil") {
+          handleStartDraw(x, y, pressure);
+        } else {
+          handleStartErase(x, y);
+        }
+      }}
+      handleMoveDraw={(x, y, pressure) => {
+        if (sketchMode === "pencil") {
+          handleMoveDraw(x, y, pressure);
+        } else {
+          handleMoveErase(x, y);
+        }
+      }}
+      handleEndDraw={() => {
+        if (sketchMode === "pencil") {
+          handleEndDraw();
+        } else {
+          handleEndErase();
+        }
+      }}
+    />
   );
 }
 

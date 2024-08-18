@@ -41,7 +41,7 @@ function SidebarContainer({
   return (
     <div
       className={cn(
-        "z-10 w-64 border-r-2 border-solid border-[#262626] bg-[#202020] p-2",
+        "z-10 w-64 border-r-2 border-solid dark:border-[#262626] dark:bg-[#202020] p-2 bg-white",
         display === "float" &&
           "fixed top-[50vh] h-fit min-h-[600px] -translate-y-1/2 rounded-lg transition-all duration-300",
         className

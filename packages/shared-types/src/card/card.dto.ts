@@ -12,12 +12,39 @@ export const CardPermissionDTOSchema = z.enum([
   CardPermissionDTO.PublicEditable,
 ]);
 
+export enum CardTypeDTO {
+  note = "note",
+  book = "book",
+  outline = "outline",
+}
+
+export const CardTypeDTOSchema = z.enum([
+  CardTypeDTO.note,
+  CardTypeDTO.book,
+  CardTypeDTO.outline,
+]);
+
+export const LLMDataDTOSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+  prompt: z.string(),
+  input: z.string(),
+  model: z.string(),
+  completion: z.string(),
+  cost: z.number(),
+  useTime: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  deletedAt: z.string().nullable().optional(),
+});
+
 export const cardDtoSchema = z.object({
   id: z.string(),
   belongAccountId: z.string(),
   permission: CardPermissionDTOSchema,
   title: z.string(),
-  content: z.string(),
+  snapshotContent: z.string(),
+  modifyContent: z.string(),
   width: z.number(),
   height: z.number(),
   isSizeFitContent: z.boolean(),
@@ -47,6 +74,8 @@ export const cardDtoSchema = z.object({
       ),
     })
   ),
+  type: CardTypeDTOSchema,
+  llmData: LLMDataDTOSchema.nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   deletedAt: z.string().nullable().optional(),
