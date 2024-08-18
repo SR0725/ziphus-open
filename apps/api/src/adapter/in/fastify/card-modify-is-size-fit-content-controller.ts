@@ -39,11 +39,12 @@ const cardModifyIsSizeFitContentController: FastifyControllerInterface<
         });
 
         emitSocket({
-          event: `card:${cardId}:is-size-fit-content-modified`,
+          event: `card:is-size-fit-content-modified`,
           data: {
+            cardId,
             isSizeFitContent,
           },
-        }); 
+        });
       } catch (error) {
         reply.code(400);
         console.error(error);
