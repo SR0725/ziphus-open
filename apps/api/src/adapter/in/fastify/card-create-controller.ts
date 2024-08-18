@@ -1,6 +1,7 @@
 import {
   AuthorizationHeaderSchema,
   CardCreateResponseDTOSchema,
+  CardCreateRequestDTOSchema,
   CardPermissionDTO,
 } from "@repo/shared-types";
 import type { CardCreateUseCase } from "@/application/port/in/card-create-use-case";
@@ -18,6 +19,7 @@ const cardCreateController: FastifyControllerInterface<CardCreateUseCase> = (
       summary: "建立新卡片",
       tags: ["Card"],
       headers: AuthorizationHeaderSchema,
+      body: CardCreateRequestDTOSchema,
       response: {
         200: CardCreateResponseDTOSchema,
       },
@@ -28,10 +30,12 @@ const cardCreateController: FastifyControllerInterface<CardCreateUseCase> = (
         reply.code(401);
         throw new Error("Unauthorized");
       }
+      const initialContent = request.body.initialContent;
 
       try {
         const card = await cardCreateUseCase({
           accountId: accountToken.accountId,
+          initialContent,
         });
         const cardDto = {
           ...card,
