@@ -28,13 +28,14 @@ const SpaceCardImmediateUpdatePositionUseCaseController: IoControllerInterface<
           event: `space:card:${data.spaceCardId}:update-position`,
           data: {
             spaceCardId: data.spaceCardId,
+            spaceId: data.spaceId,
             x: data.x,
             y: data.y,
           },
           room: data.spaceId,
           except: socket.id,
         });
-      } catch (error) { }
+      } catch (error) {}
     }
   );
 };
