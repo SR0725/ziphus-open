@@ -21,7 +21,8 @@ const spaceCardCreateUseCaseConstructor: SpaceCardCreateUseCaseConstructor =
       targetCardId,
       targetSpaceId,
       x,
-      y
+      y,
+      []
     );
 
     await saveSpaceCard(newSpaceCard, true);
