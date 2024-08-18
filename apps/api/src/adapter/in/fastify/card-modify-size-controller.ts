@@ -10,7 +10,7 @@ import type FastifyControllerInterface from "./fastify-controller-interface";
 
 const cardModifySizeController: FastifyControllerInterface<
   [CardModifySizeUseCase, EmitSocketPort]
-> = (fastify, [cardModifyTitleUseCase, emitSocket]) => {
+> = (fastify, [cardModifySizeUseCase, emitSocket]) => {
   fastify.route({
     method: "PUT",
     url: "/card/:id/size",
@@ -33,7 +33,7 @@ const cardModifySizeController: FastifyControllerInterface<
       const width = request.body.width;
 
       try {
-        await cardModifyTitleUseCase({
+        await cardModifySizeUseCase({
           accountId: accountToken?.accountId,
           cardId,
           height,
@@ -41,12 +41,13 @@ const cardModifySizeController: FastifyControllerInterface<
         });
 
         emitSocket({
-          event: `card:${cardId}:size-modified`,
+          event: `card:size-modified`,
           data: {
+            cardId,
             height,
             width,
           },
-        }); 
+        });
       } catch (error) {
         reply.code(400);
         console.error(error);
