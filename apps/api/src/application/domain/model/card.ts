@@ -35,18 +35,42 @@ export class Image {
   ) {}
 }
 
+export enum CardType {
+  note = "note",
+  book = "book",
+  outline = "outline",
+}
+
+export class LLMData {
+  constructor(
+    readonly id: string,
+    readonly description: string,
+    readonly prompt: string,
+    readonly input: string,
+    readonly model: string,
+    readonly completion: string,
+    readonly cost: number,
+    readonly useTime: number,
+    readonly createdAt: string,
+    readonly updatedAt: string,
+    readonly deletedAt: string | null
+  ) {}
+}
 class Card {
   constructor(
     readonly id: string,
     readonly belongAccountId: string,
     readonly permission: CardPermission,
     readonly title: string,
-    readonly content: string,
+    readonly snapshotContent: string,
+    readonly modifyContent: string,
     readonly width: number,
     readonly height: number,
     readonly isSizeFitContent: boolean,
     readonly drawings: Stroke[],
     readonly images: Image[],
+    readonly type: CardType,
+    readonly llmDataUseHistory: LLMData[] | null,
     readonly createdAt: string,
     readonly updatedAt: string,
     readonly deletedAt: string | null
