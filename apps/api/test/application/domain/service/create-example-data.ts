@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
 import Account from "@/application/domain/model/account";
-import Card, { CardPermission } from "@/application/domain/model/card";
+import Card, {
+  CardPermission,
+  CardType,
+} from "@/application/domain/model/card";
 import hash from "@/common/hash";
+import Space, { SpacePermission } from "@/application/domain/model/space";
 
 export const examplePassword = "test-password";
 
@@ -24,13 +28,29 @@ export function createExampleCard(accountId: string): Card {
   return new Card(
     randomUUID(),
     accountId,
-    CardPermission.Private,
+    CardPermission.PublicEditable,
     "",
     "",
-    1280,
-    1280,
+    "",
+    600,
+    128,
     true,
     [],
+    [],
+    CardType.note,
+    null,
+    new Date().toISOString(),
+    new Date().toISOString(),
+    null
+  );
+}
+
+export function createExampleSpace(accountId: string): Space {
+  return new Space(
+    randomUUID(),
+    accountId,
+    "Example Title",
+    SpacePermission.PublicEditable,
     [],
     new Date().toISOString(),
     new Date().toISOString(),

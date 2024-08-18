@@ -2,7 +2,6 @@ import cardModifyContentUseCaseConstructor from "@/application/domain/service/ca
 import { type CardModifyContentUseCaseConstructor } from "@/application/port/in/card-modify-content-use-case";
 import type { LoadCardPort } from "@/application/port/out/load-card-port";
 import type { SaveCardPort } from "@/application/port/out/save-card-port";
-import type { EmitSocketPort } from "@/application/port/out/emit-socket-port";
 import { CardPermission } from "@/application/domain/model/card";
 import { createExampleAccount, createExampleCard } from "./create-example-data";
 
@@ -28,7 +27,7 @@ describe("CardModifyContentUseCase", () => {
     const exampleAccount = await createExampleAccount();
     const exampleCard = {
       ...createExampleCard(exampleAccount.id),
-      content: "Hello, I am a Ray",
+      modifyContent: "Hello, I am a Ray",
     };
     loadCardMock.mockResolvedValue(exampleCard);
     saveCardMock.mockResolvedValue(undefined);
@@ -42,10 +41,13 @@ describe("CardModifyContentUseCase", () => {
     expect(loadCardMock).toHaveBeenCalledWith({
       id: exampleCard.id,
     });
-    expect(saveCardMock).toHaveBeenCalledWith({
-      ...exampleCard,
-      content: "Hello, I am a Cat",
-    });
+    expect(saveCardMock).toHaveBeenCalledWith(
+      {
+        ...exampleCard,
+        modifyContent: "Hello, I am a Cat",
+      },
+      true
+    );
   });
 
   it(`
@@ -56,7 +58,7 @@ describe("CardModifyContentUseCase", () => {
     const exampleAccount = await createExampleAccount();
     const exampleCard = {
       ...createExampleCard(exampleAccount.id),
-      content: "Hello, I am a Ray",
+      modifyContent: "Hello, I am a Ray",
       permission: CardPermission.PublicEditable,
     };
     loadCardMock.mockResolvedValue(exampleCard);
@@ -71,10 +73,13 @@ describe("CardModifyContentUseCase", () => {
     expect(loadCardMock).toHaveBeenCalledWith({
       id: exampleCard.id,
     });
-    expect(saveCardMock).toHaveBeenCalledWith({
-      ...exampleCard,
-      content: "Hello, I am a Cat",
-    });
+    expect(saveCardMock).toHaveBeenCalledWith(
+      {
+        ...exampleCard,
+        modifyContent: "Hello, I am a Cat",
+      },
+      true
+    );
   });
 
   it(`
@@ -85,7 +90,7 @@ describe("CardModifyContentUseCase", () => {
     const exampleAccount = await createExampleAccount();
     const exampleCard = {
       ...createExampleCard(exampleAccount.id),
-      content: "Hello, I am a Ray",
+      modifyContent: "Hello, I am a Ray",
       permission: CardPermission.Private,
     };
     loadCardMock.mockResolvedValue(exampleCard);

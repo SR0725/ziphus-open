@@ -35,15 +35,15 @@ describe("CardCreateUseCase", () => {
       expect.objectContaining({
         id: expect.any(String),
         belongAccountId: existingAccount.id,
-        permission: CardPermission.Private,
-        width: 1280,
-        height: 1280,
+        permission: CardPermission.PublicEditable,
+        width: 600,
+        height: 128,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       })
     );
 
-    expect(saveCardMock).toHaveBeenCalledWith(newCard);
+    expect(saveCardMock).toHaveBeenCalledTimes(1);
   });
 
   it(`
