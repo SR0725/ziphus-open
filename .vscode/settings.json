@@ -16,11 +16,14 @@
     "source.fixAll.eslint": "explicit"
   },
   "cSpell.words": [
+    "blocknote",
     "fastify",
     "nextui",
+    "Pangu",
     "socketio",
     "sonner",
     "tanstack",
-    "Ziphus"
+    "Ziphus",
+    "zustand"
   ]
 }
