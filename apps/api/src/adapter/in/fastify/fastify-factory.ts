@@ -5,10 +5,10 @@ import fastifySwaggerUI from "@fastify/swagger-ui";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
   jsonSchemaTransform,
-  createJsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from "fastify-type-provider-zod";
+import multipart from "@fastify/multipart";
 
 function fastifyFactory(port = 8080) {
   const fastify = Fastify();
@@ -17,6 +17,16 @@ function fastifyFactory(port = 8080) {
   fastify.register(cors, {
     origin: ["*"],
     credentials: true,
+  });
+  fastify.register(multipart, {
+    limits: {
+      fieldNameSize: 100,
+      fieldSize: 100,
+      fields: 10,
+      fileSize: 50000000,
+      files: 1,
+      headerPairs: 2000,
+    },
   });
   fastify.register(fastifySwagger, {
     openapi: {
@@ -31,16 +41,7 @@ function fastifyFactory(port = 8080) {
   });
   fastify.register(fastifySwaggerUI, {
     routePrefix: "/documentation",
-  });
-
-  fastify
-    .listen({
-      port,
-      host: "0.0.0.0",
-    })
-    .then((address) => {
-      console.log(`Server listening on ${address}`);
-    });
+  });         
 
   return fastify.withTypeProvider<ZodTypeProvider>();
 }
