@@ -22,7 +22,7 @@ const cardModifyIsSizeFitContentUseCaseConstructor: CardModifyIsSizeFitContentUs
       // 儲存更新後的卡片
       await saveCard(
         {
-          ...card,
+          id: cardId,
           isSizeFitContent,
         },
         true

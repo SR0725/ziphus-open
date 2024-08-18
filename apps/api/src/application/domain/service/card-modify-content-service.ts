@@ -19,7 +19,10 @@ const cardModifyContentCaseConstructor: CardModifyContentUseCaseConstructor =
     }
 
     // 儲存更新後的卡片
-    await saveCard({ ...card, content });
+    saveCard({
+      id: cardId,
+      modifyContent: content,
+    });
 
     return true;
   };
