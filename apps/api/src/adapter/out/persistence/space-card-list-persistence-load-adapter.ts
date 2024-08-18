@@ -37,6 +37,7 @@ const SpaceCardListPersistenceLoadAdapter =
               x: 1,
               y: 1,
               card: 1,
+              linkLines: 1,
             },
           },
         ]

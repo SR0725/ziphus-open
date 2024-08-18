@@ -57,18 +57,43 @@ export class Image {
     readonly deletedAt: string | null
   ) {}
 }
+
+export enum CardType {
+  note = "note",
+  book = "book",
+  outline = "outline",
+}
+
+export class LLMData {
+  constructor(
+    readonly id: string,
+    readonly description: string,
+    readonly prompt: string,
+    readonly input: string,
+    readonly model: string,
+    readonly completion: string,
+    readonly cost: number,
+    readonly useTime: number,
+    readonly createdAt: string,
+    readonly updatedAt: string,
+    readonly deletedAt: string | null
+  ) {}
+}
 export class Card {
   constructor(
     readonly id: string,
     readonly belongAccountId: string,
     readonly permission: CardPermission,
     readonly title: string,
-    readonly content: string,
+    readonly snapshotContent: string,
+    readonly modifyContent: string,
     readonly width: number,
     readonly height: number,
     readonly isSizeFitContent: boolean,
     readonly images: Image[],
     readonly drawings: Stroke[],
+    readonly type: CardType,
+    readonly llmDataUseHistory: LLMData[] | null,
     readonly createdAt: string,
     readonly updatedAt: string,
     readonly deletedAt: string | null
@@ -81,13 +106,44 @@ export enum SpacePermission {
   PublicEditable = "PublicEditable",
 }
 
+export enum LineType {
+  Straight = "Straight",
+  Curve = "Curve",
+}
+
+export enum LinkDirection {
+  top = "top",
+  bottom = "bottom",
+  left = "left",
+  right = "right",
+}
+
+class LinkLine {
+  constructor(
+    readonly id: string,
+    readonly startCardDirection: LinkDirection,
+    readonly endCardDirection: LinkDirection,
+    readonly lineType: LineType,
+    readonly startCardId: string,
+    readonly endCardId: string,
+    readonly startCardX: number,
+    readonly startCardY: number,
+    readonly endCardX: number,
+    readonly endCardY: number,
+    readonly createdAt: string,
+    readonly updatedAt: string,
+    readonly deletedAt: string | null
+  ) {}
+}
+
 export class SpaceCard {
   constructor(
     readonly id: string,
     readonly targetCardId: string,
     readonly targetSpaceId: string,
     readonly x: number,
-    readonly y: number
+    readonly y: number,
+    readonly linkLines: LinkLine[]
   ) {}
 }
 
