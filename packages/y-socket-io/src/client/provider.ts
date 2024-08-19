@@ -106,6 +106,9 @@ export class SocketIOProvider extends Observable<string> {
     this.socket.emit("yjs-connect", this.roomName);
 
     this.socket.on(`yjs-${this.roomName}-connected`, () => {
+      if (this.socketConnected) {
+        return;
+      }
       this.emit("status", [{ status: "connected" }]);
       // 將本地的 doc 狀態同步到 server
       this.socket.emit(
@@ -141,6 +144,7 @@ export class SocketIOProvider extends Observable<string> {
     event: Socket.DisconnectReason
   ): void => {
     this.emit("connection-close", [event, this]);
+    console.log("disconnected", event);
     this.socketConnected = false;
     AwarenessProtocol.removeAwarenessStates(
       this.awareness,

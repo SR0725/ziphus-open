@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import {
   MdAddToPhotos,
   MdOutlineVerticalAlignTop,
@@ -10,14 +10,16 @@ import {
   MdDelete,
 } from "react-icons/md";
 import { SlSizeActual } from "react-icons/sl";
+import { useShallow } from "zustand/react/shallow";
 import { SpaceCardUpdateLayerRequestDTO } from "@repo/shared-types";
 import { Listbox, ListboxSection, ListboxItem } from "@/components/nextui";
 import useCreateCard from "@/hooks/card/useCreateCard";
-import useCreateSpaceCard from "@/hooks/space/useCreateSpaceCard";
-import useDeleteSpaceCard from "@/hooks/space/useDeleteSpaceCard";
-import { SpaceWithFullData } from "@/hooks/space/useQuerySpaceWithFullData";
-import useUpdateSpaceCardLayer from "@/hooks/space/useUpdateSpaceCardLayer";
-import { View } from "@/models/view";
+import useCloseContextMenuCase from "@/hooks/space/useCloseContextMenuCase";
+import useCreateSpaceCardCase from "@/hooks/space/useCreateSpaceCardCase";
+import useDeleteSpaceCardCase from "@/hooks/space/useDeleteSpaceCardCase";
+import useUpdateSpaceCardLayerCase from "@/hooks/space/useUpdateSpaceCardLayerCase";
+import useEditorStore from "@/stores/useEditorStore";
+import useSpaceStore from "@/stores/useSpaceStore";
 import transformMouseClientPositionToViewPosition from "@/utils/space/transformMouseClientPositionToViewPosition";
 
 export interface ContextMenuInfo {
@@ -26,39 +28,23 @@ export interface ContextMenuInfo {
   targetSpaceCardId?: string;
 }
 
-interface ContextMenuComponentProps {
-  contextMenuInfo: ContextMenuInfo | null;
-  setContextMenuInfo: (contextMenuInfo: ContextMenuInfo | null) => void;
-  viewRef: React.MutableRefObject<View>;
-  spaceId: string;
-  space: SpaceWithFullData;
-  setSpace: (space: SpaceWithFullData) => void;
-  mutateDeleteSpaceCard: ReturnType<typeof useDeleteSpaceCard>;
-  mutateCreateSpaceCard: ReturnType<typeof useCreateSpaceCard>;
-  mutateCreateCard: ReturnType<typeof useCreateCard>;
-  mutateUpdateSpaceCardLayer: ReturnType<typeof useUpdateSpaceCardLayer>;
-}
-
 // global space context menu
-function GlobalSpaceContextMenu(
-  props: ContextMenuComponentProps
-): React.ReactNode {
-  const {
-    contextMenuInfo,
-    viewRef,
-    spaceId,
-    mutateCreateSpaceCard,
-    mutateCreateCard,
-    setContextMenuInfo,
-    space,
-    setSpace,
-  } = props;
+function GlobalSpaceContextMenu(): React.ReactNode {
+  const { spaceId } = useSpaceStore(
+    useShallow((state) => ({
+      spaceId: state.id,
+    }))
+  );
+
+  const closeContextMenu = useCloseContextMenuCase();
+  const mutateCreateCard = useCreateCard();
+  const mutateCreateSpaceCard = useCreateSpaceCardCase();
 
   const handleAddCard = useCallback(() => {
     mutateCreateCard.mutate(undefined, {
       onSuccess: (data) => {
         console.log("新增卡片成功", data.data);
-        const view = viewRef.current;
+        const { view, contextMenuInfo } = useEditorStore.getState();
         mutateCreateSpaceCard.mutate(
           {
             spaceId,
@@ -70,12 +56,8 @@ function GlobalSpaceContextMenu(
             ),
           },
           {
-            onSuccess: (data: any) => {
-              console.log("新增卡片成功", data.data);
-              setSpace({
-                ...space!,
-                spaceCards: [...space!.spaceCards, data.data.spaceCard],
-              });
+            onSuccess: () => {
+              closeContextMenu();
             },
           }
         );
@@ -84,19 +66,11 @@ function GlobalSpaceContextMenu(
         console.error("新增卡片失敗", error);
       },
     });
-    setContextMenuInfo(null);
-  }, [
-    contextMenuInfo,
-    mutateCreateCard,
-    mutateCreateSpaceCard,
-    setSpace,
-    space,
-    spaceId,
-  ]);
+  }, [mutateCreateCard, mutateCreateSpaceCard, spaceId]);
 
   return (
     <>
-      <Listbox>
+      <Listbox aria-label="空間選單">
         <ListboxSection title="操作">
           <ListboxItem
             key="add-card"
@@ -113,19 +87,12 @@ function GlobalSpaceContextMenu(
 }
 
 // space card context menu
-function SpaceCardContextMenu(
-  props: ContextMenuComponentProps
-): React.ReactNode {
-  const {
-    contextMenuInfo,
-    spaceId,
-    mutateDeleteSpaceCard,
-    mutateUpdateSpaceCardLayer,
-    setContextMenuInfo,
-    space,
-    setSpace,
-  } = props;
-
+function SpaceCardContextMenu(): React.ReactNode {
+  const spaceId = useSpaceStore((state) => state.id);
+  const mutateDeleteSpaceCard = useDeleteSpaceCardCase();
+  const mutateUpdateSpaceCardLayer = useUpdateSpaceCardLayerCase();
+  const contextMenuInfo = useEditorStore((state) => state.contextMenuInfo);
+  const closeContextMenu = useCloseContextMenuCase();
   const layerOptions: {
     label: string;
     description: string;
@@ -159,7 +126,7 @@ function SpaceCardContextMenu(
   ];
 
   return (
-    <Listbox>
+    <Listbox aria-label="卡片選單">
       <ListboxSection title="順序" showDivider>
         {layerOptions.map((layerOption) => (
           <ListboxItem
@@ -173,7 +140,7 @@ function SpaceCardContextMenu(
                 spaceCardId: contextMenuInfo.targetSpaceCardId,
                 operation: layerOption.value,
               });
-              setContextMenuInfo(null);
+              closeContextMenu();
             }}
           >
             {layerOption.label}
@@ -200,20 +167,13 @@ function SpaceCardContextMenu(
           key={"delete-card"}
           description="從本空間中刪除卡片"
           startContent={<MdDelete />}
-          onClick={() => {
+          onClick={async () => {
             if (!contextMenuInfo?.targetSpaceCardId) return;
-            mutateDeleteSpaceCard.mutate({
+            await mutateDeleteSpaceCard.mutateAsync({
               spaceId,
               spaceCardId: contextMenuInfo.targetSpaceCardId,
             });
-            setContextMenuInfo(null);
-            setSpace({
-              ...space!,
-              spaceCards: space!.spaceCards.filter(
-                (spaceCard) =>
-                  spaceCard.id !== contextMenuInfo.targetSpaceCardId
-              ),
-            });
+            closeContextMenu();
           }}
         >
           刪除卡片
@@ -224,30 +184,23 @@ function SpaceCardContextMenu(
 }
 
 // contextMenu: 右鍵選單
-const ContextMenuComponent = React.forwardRef(
-  (props: ContextMenuComponentProps, ref) => {
-    const { contextMenuInfo } = props;
-
-    return (
-      <div
-        className={`absolute flex h-fit w-fit min-w-48 flex-col gap-2 rounded-md bg-gray-800 p-1 text-gray-100 ${
-          contextMenuInfo ? "" : "hidden"
-        }`}
-        style={{
-          left: contextMenuInfo ? contextMenuInfo.x : 0,
-          top: contextMenuInfo ? contextMenuInfo.y : 0,
-        }}
-        ref={ref as React.RefObject<HTMLDivElement>}
-      >
-        {contextMenuInfo?.targetSpaceCardId && (
-          <SpaceCardContextMenu {...props} />
-        )}
-        {!contextMenuInfo?.targetSpaceCardId && (
-          <GlobalSpaceContextMenu {...props} />
-        )}
-      </div>
-    );
-  }
-);
+const ContextMenuComponent = React.forwardRef(({}, ref) => {
+  const contextMenuInfo = useEditorStore((state) => state.contextMenuInfo);
+  return (
+    <div
+      className={`absolute flex h-fit w-fit min-w-48 flex-col gap-2 rounded-md bg-gray-800 p-1 text-gray-100 ${
+        contextMenuInfo ? "" : "hidden"
+      }`}
+      style={{
+        left: contextMenuInfo ? contextMenuInfo.x : 0,
+        top: contextMenuInfo ? contextMenuInfo.y : 0,
+      }}
+      ref={ref as React.RefObject<HTMLDivElement>}
+    >
+      {contextMenuInfo?.targetSpaceCardId && <SpaceCardContextMenu />}
+      {!contextMenuInfo?.targetSpaceCardId && <GlobalSpaceContextMenu />}
+    </div>
+  );
+});
 
 export default ContextMenuComponent;

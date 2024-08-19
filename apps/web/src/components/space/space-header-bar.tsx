@@ -5,7 +5,7 @@ import SpaceHeaderBarRetitleInput from "./space-header-bar-retitle-input";
 
 function SpaceHeaderBar() {
   return (
-    <div className="flex h-8 items-center bg-[#0E0E0E] px-8 text-white">
+    <div className="flex h-8 items-center bg-slate-100 dark:bg-[#0E0E0E] px-8">
       <Breadcrumbs size="sm">
         <BreadcrumbItem key="space-list" href="/spaces">
           空間列表

@@ -62,7 +62,7 @@ describe("CardGetByIdUseCase", () => {
         cardId: exampleCard.id,
         accountId: "other-account-id",
       })
-    ).rejects.toThrow("Card not found");
+    ).rejects.toThrow("Permission denied");
   });
 
   it(`
@@ -97,7 +97,7 @@ describe("CardGetByIdUseCase", () => {
       cardCreateUseCase({
         cardId: exampleCard.id,
       })
-    ).rejects.toThrow("Card not found");
+    ).rejects.toThrow("Permission denied");
   });
 
   it(`

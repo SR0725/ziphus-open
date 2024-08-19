@@ -14,9 +14,11 @@ import { cn } from "@/utils/cn";
 function SpacePreviewCardContainer({
   children,
   className,
+  available = true,
 }: {
   children: React.ReactNode;
   className?: string;
+  available?: boolean;
 }) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
@@ -45,8 +47,8 @@ function SpacePreviewCardContainer({
     <div
       className={cn(
         "relative h-fit w-full overflow-hidden border border-solid border-white",
-        !isHovering && "shadow-2xl transition-all duration-500",
-        fadingIn && "shadow-2xl transition-all duration-150",
+        !isHovering && " shadow transition-all duration-500 lg:shadow-2xl",
+        fadingIn && " shadow transition-all duration-150 lg:shadow-2xl",
         className
       )}
       style={{
@@ -57,15 +59,18 @@ function SpacePreviewCardContainer({
           : "perspective(1000px) rotateX(0deg) rotateY(0deg)",
       }}
       ref={cardRef}
-      onMouseMove={handleMouseMove}
+      onMouseMove={(e) => available && handleMouseMove(e)}
       onMouseEnter={() => {
+        if (!available) {
+          return;
+        }
         setIsHovering(true);
         setFadingIn(true);
       }}
-      onMouseLeave={() => setIsHovering(false)}
+      onMouseLeave={() => available && setIsHovering(false)}
     >
       <div
-        className="absolute left-1/2 top-1/2 -z-10 h-32 w-32 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-[#f74f4f] backdrop-blur-sm transition-opacity duration-300"
+        className="absolute left-1/2 top-1/2 -z-10 hidden h-32 w-32 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-[#d4d5d6] backdrop-blur-sm transition-opacity duration-300 dark:bg-[#f74f4f] lg:block"
         style={{
           top: `${mousePosition.y}px`,
           left: `${mousePosition.x}px`,
@@ -94,15 +99,18 @@ function SpacePreviewCard({ space }: SpacePreviewCardProps) {
       : space.title.length > 24
         ? space.title.slice(0, 24) + "..."
         : space.title;
+  const isMobile = window.innerWidth < 768 ? "true" : "false";
 
   return (
-    <Link href={`/space/${space.id}`} passHref>
+    <Link href={`/space/${space.id}?isMobile=${isMobile}`} passHref>
       <SpacePreviewCardContainer className="rounded-lg">
-        <div className="relative h-64 w-full max-w-2xl cursor-pointer overflow-hidden bg-[#5a5a5a33] p-6 backdrop-blur-3xl">
-          <h2 className="text-lg font-semibold text-[#5C5C5C]">
+        <div className="relative h-48 w-full max-w-2xl cursor-pointer overflow-hidden bg-[#5a5a5a33] p-6 lg:h-64 lg:backdrop-blur-3xl">
+          <h2 className=" text-sm font-semibold text-[#5C5C5C] lg:text-lg">
             {permissionText} →
           </h2>
-          <h1 className="text-2xl font-bold text-[#A1A1A1]">{title}</h1>
+          <h1 className="text-lg font-bold text-[#A1A1A1] lg:text-2xl">
+            {title}
+          </h1>
         </div>
       </SpacePreviewCardContainer>
     </Link>

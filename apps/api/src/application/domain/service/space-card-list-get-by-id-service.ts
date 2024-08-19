@@ -18,14 +18,21 @@ const spaceCardListGetBySpaceIdUseCaseConstructor: SpaceCardListGetBySpaceIdUseC
         throw new Error("Permission denied");
       }
 
-      const spaceCards = await loadSpaceCardList(
-        {
-          targetSpaceId: spaceId,
-        },
-        {
-          isCombineTargetCard: isCombineTargetCard ?? false,
-        }
-      );
+      const spaceCards =
+        (await loadSpaceCardList(
+          {
+            targetSpaceId: spaceId,
+          },
+          {
+            isCombineTargetCard: isCombineTargetCard ?? false,
+          }
+        )) ?? [];
+
+      spaceCards.sort((a, b) => {
+        const indexA = space.layers.indexOf(a.id);
+        const indexB = space.layers.indexOf(b.id);
+        return indexA - indexB;
+      });
 
       return spaceCards ?? [];
     };

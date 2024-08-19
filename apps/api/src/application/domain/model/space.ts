@@ -4,13 +4,44 @@ export enum SpacePermission {
   PublicEditable = "PublicEditable",
 }
 
+export enum LineType {
+  Straight = "Straight",
+  Curve = "Curve",
+}
+
+export enum LinkDirection {
+  top = "top",
+  bottom = "bottom",
+  left = "left",
+  right = "right",
+}
+
+export class LinkLine {
+  constructor(
+    readonly id: string,
+    readonly startCardDirection: LinkDirection,
+    readonly endCardDirection: LinkDirection,
+    readonly lineType: LineType,
+    readonly startCardId: string,
+    readonly endCardId: string,
+    readonly startCardX: number,
+    readonly startCardY: number,
+    readonly endCardX: number,
+    readonly endCardY: number,
+    readonly createdAt: string,
+    readonly updatedAt: string,
+    readonly deletedAt: string | null
+  ) {}
+}
+
 export class SpaceCard {
   constructor(
     readonly id: string,
     readonly targetCardId: string,
     readonly targetSpaceId: string,
     readonly x: number,
-    readonly y: number
+    readonly y: number,
+    readonly linkLines: LinkLine[]
   ) {}
 }
 

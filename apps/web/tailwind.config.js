@@ -10,6 +10,7 @@ module.exports = {
     extend: {
       colors: {
         "dark-card-bg": "#1F1F1F",
+        "white-card-bg": "#F9F9F9",
       },
     },
   },

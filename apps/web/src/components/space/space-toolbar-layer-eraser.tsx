@@ -20,12 +20,12 @@ function SpaceToolbarLayerEraser({
             "rounded-full border",
             eraserInfo.eraserSize === width
               ? "border-gray-200"
-              : "border-transparent"
+              : "border-transparent",
+             eraserInfo.eraserSize === width ? "bg-gray-500" : "bg-gray-200 dark:bg-white"
           )}
           style={{
             width: `${16 + 4 * index}px`,
             height: `${16 + 4 * index}px`,
-            backgroundColor: eraserInfo.eraserSize === width ? "gray" : "white",
           }}
           onClick={(event) => {
             event.stopPropagation();

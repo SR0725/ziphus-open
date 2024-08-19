@@ -1,30 +1,27 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { CardDto, CardGetByIdResponseDTO } from "@repo/shared-types";
-import useCardResize from "@/hooks/card/useCardResize";
+import useGetCard from "../../hooks/card/useGetCard";
+import { CardGetByIdResponseDTO } from "@repo/shared-types";
+import useCardResizeEvent from "@/hooks/card/useCardResizeEvent";
+import useCardSizeUpdate from "@/hooks/card/useCardSizeUpdate";
+import useCardStoreInitialCase from "@/hooks/card/useCardStoreInitialCase";
 import useFitContentEvent from "@/hooks/card/useFitContentEvent";
 import useQueryCardById from "@/hooks/card/useQueryCardById";
-import useUpdateCardIsSizeFitContent from "@/hooks/card/useUpdateCardIsSizeFitContent";
-import useUpdateCardSize from "@/hooks/card/useUpdateCardSize";
-import useViewScaleUpdate from "@/hooks/card/useViewScaleUpdate";
+import useUpdateCardIsSizeFitContentCase from "@/hooks/card/useUpdateCardIsSizeFitContentCase";
+import useUpdateCardSizeCase from "@/hooks/card/useUpdateCardSizeCase";
 import useCanvasEditor from "@/hooks/useCanvasEditor";
 import useMe from "@/hooks/useMe";
 import useYJSProvide from "@/hooks/useYJSProvider";
 import { cn } from "@/utils/cn";
-import CardEditorSketchPanel, {
-  EditMode,
-  EraserInfo,
-  PencilInfo,
-  SketchMode,
-} from "./card-editor-sketch-panel";
+import CardEditorSketchPanel from "./card-editor-sketch-panel";
 
 const CardEditorMarkdownEditor = dynamic(
   () => import("./card-editor-markdown-editor")
 );
 
-export const MIN_CONTENT_CARD_HEIGHT = 800;
+export const MIN_CONTENT_CARD_HEIGHT = 128;
 export const MIN_CONTENT_CARD_WIDTH = 600;
 
 interface IndependentCardEditorProps {
@@ -33,19 +30,13 @@ interface IndependentCardEditorProps {
 }
 
 export function IndependentCardEditor(props: IndependentCardEditorProps) {
-  const { editMode, sketchMode, pencilInfo, eraserInfo, isUseApplePencil } =
-    useCanvasEditor();
+  const canvasEditorSettings = useCanvasEditor();
 
   return (
-    <CardEditorSEO
+    <CardEditorPreviewer
       {...props}
-      isFocus={true}
       isEditable={true}
-      isUseApplePencil={isUseApplePencil}
-      editMode={editMode}
-      sketchMode={sketchMode}
-      pencilInfo={pencilInfo}
-      eraserInfo={eraserInfo}
+      canvasEditorSettings={canvasEditorSettings}
     />
   );
 }
@@ -53,170 +44,153 @@ export function IndependentCardEditor(props: IndependentCardEditorProps) {
 interface CardEditorProps {
   initialCard: CardGetByIdResponseDTO["card"];
   cardId: string;
-  isFocus: boolean;
-  isUseApplePencil: boolean;
   isEditable: boolean;
-  editMode: EditMode;
-  sketchMode: SketchMode;
-  pencilInfo: PencilInfo;
-  eraserInfo: EraserInfo;
   spaceCardId?: string;
+  canvasEditorSettings: ReturnType<typeof useCanvasEditor>;
+  alwaysFullWidth?: boolean;
 }
 
-export function CardEditorSEO(props: CardEditorProps) {
+export function CardEditorPreviewer(props: CardEditorProps) {
   const { initialCard, cardId } = props;
   const { card: fetchedCard } = useQueryCardById(cardId);
-
   if (!initialCard && !fetchedCard) return <div>Loading...</div>;
 
-  if (initialCard && !fetchedCard)
-    return (
-      <div
-        className="text-white"
-        dangerouslySetInnerHTML={{
-          __html: initialCard.content as string,
-        }}
-      ></div>
-    );
-
-  return <CardEditor {...props} initialCard={initialCard || fetchedCard} />;
+  return (
+    <CardEditorContentPreviewer
+      {...props}
+      initialCard={initialCard || fetchedCard}
+    />
+  );
 }
 
-function CardEditor({
-  initialCard,
-  isFocus,
-  isEditable,
-  isUseApplePencil,
-  editMode,
-  sketchMode,
-  pencilInfo,
-  eraserInfo,
-  spaceCardId,
-}: CardEditorProps) {
+function CardEditorContentPreviewer(props: CardEditorProps) {
+  const {
+    initialCard,
+    canvasEditorSettings,
+    spaceCardId,
+    isEditable,
+    alwaysFullWidth,
+  } = props;
   if (!initialCard) throw new Error("Card not found");
 
-  const cardDataRef = useRef<CardDto>(initialCard);
-  const cardHTMLElementRef = useRef<HTMLDivElement>(null);
+  // 紀錄文本編輯器的高度
   const contentHeightRef = useRef<number>(0);
+  // 初始化所需資料
+  const initialCardStore = useCardStoreInitialCase();
+  const getCard = useGetCard();
+  useEffect(() => {
+    if (getCard(initialCard.id)) return;
+    initialCardStore(initialCard);
+    contentHeightRef.current = initialCard.height;
+  }, [initialCard]);
   const { account } = useMe();
-  const { doc, provider, status } = useYJSProvide(`card:${initialCard?.id}`);
+  const { doc, provider, status } = useYJSProvide(`card:${initialCard.id}`);
 
-  const { needRefresh } = useViewScaleUpdate(cardHTMLElementRef, cardDataRef);
+  const cardHTMLElementRef = useRef<HTMLDivElement>(null);
 
-  const mutateUpdateCardSize = useUpdateCardSize(
-    initialCard.id,
-    (width, height) => {
-      cardDataRef.current.width = width;
-      cardDataRef.current.height = height;
-      needRefresh();
-    }
-  );
-  const mutateUpdateCardIsSizeFitContent = useUpdateCardIsSizeFitContent(
-    initialCard.id,
-    (isSizeFitContent) => {
-      cardDataRef.current.isSizeFitContent = isSizeFitContent;
-    }
+  const { handleUpdateCardSize, handleUpdateCardSizeFinish } =
+    useUpdateCardSizeCase(initialCard.id);
+
+  const mutateUpdateCardIsSizeFitContent = useUpdateCardIsSizeFitContentCase(
+    initialCard.id
   );
 
-  const onContentSizeChange = useCallback((height: number) => {
-    contentHeightRef.current = height;
-    if (!cardDataRef.current.isSizeFitContent) {
-      return;
-    }
-
-    mutateUpdateCardSize.mutate({
-      height:
-        height < MIN_CONTENT_CARD_HEIGHT ? MIN_CONTENT_CARD_HEIGHT : height,
-      width: cardDataRef.current.width,
-    });
-  }, []);
-
-  const onCardSizeChange = useCallback(
-    (width: number, height: number) => {
-      cardDataRef.current.width = width;
-      cardDataRef.current.height = height;
-      needRefresh();
-      if (cardDataRef.current.isSizeFitContent) {
-        mutateUpdateCardIsSizeFitContent.mutate({
-          isSizeFitContent: false,
-        });
-      }
-    },
-    [needRefresh]
-  );
-
-  const onCardSizeChangeFinish = useCallback(
-    (width: number, height: number) => {
-      mutateUpdateCardSize.mutate({
-        width,
-        height,
-      });
-    },
-    [mutateUpdateCardSize]
-  );
-
+  // 創建事件:卡片大小拖動邊界
   const { widthBorderHandleRef, heightBorderHandleRef, cornerBorderHandleRef } =
-    useCardResize(
-      isFocus,
-      cardDataRef,
-      onCardSizeChange,
-      onCardSizeChangeFinish
-    );
-
-  useFitContentEvent(spaceCardId, () => {
-    mutateUpdateCardIsSizeFitContent.mutate({
-      isSizeFitContent: true,
+    useCardResizeEvent(true, initialCard.id, handleUpdateCardSize, async () => {
+      await mutateUpdateCardIsSizeFitContent.mutateAsync({
+        cardId: initialCard.id,
+        isSizeFitContent: false,
+      });
+      handleUpdateCardSizeFinish();
     });
+
+  // 創建事件:更新卡片大小為適應內容
+  useFitContentEvent(spaceCardId, async () => {
     const newHeight =
       contentHeightRef.current < MIN_CONTENT_CARD_HEIGHT
         ? MIN_CONTENT_CARD_HEIGHT
         : contentHeightRef.current;
-    onCardSizeChange(MIN_CONTENT_CARD_WIDTH, newHeight);
-    onCardSizeChangeFinish(MIN_CONTENT_CARD_WIDTH, newHeight);
+    await mutateUpdateCardIsSizeFitContent.mutateAsync({
+      cardId: initialCard.id,
+      isSizeFitContent: true,
+    });
+    handleUpdateCardSize({
+      width: MIN_CONTENT_CARD_WIDTH,
+      height: newHeight,
+    });
+    handleUpdateCardSizeFinish();
   });
+
+  // 更新卡片大小
+  useCardSizeUpdate(cardHTMLElementRef, initialCard.id, alwaysFullWidth);
+
+  // 當文本編輯器的高度因為輸入文字改變時，更新卡片大小
+  const onContentSizeChange = useCallback((height: number) => {
+    const card = getCard(initialCard.id);
+    if (!card) return;
+    if (!card.isSizeFitContent) return;
+    if (height === contentHeightRef.current || contentHeightRef.current === 0) {
+      contentHeightRef.current = height;
+      return;
+    }
+    contentHeightRef.current = height;
+    handleUpdateCardSize({
+      width: card.width,
+      height:
+        height < MIN_CONTENT_CARD_HEIGHT ? MIN_CONTENT_CARD_HEIGHT : height,
+    });
+    handleUpdateCardSizeFinish();
+  }, []);
 
   return (
     <div
-      className="card-container relative overflow-hidden"
+      className={cn("card-container relative overflow-hidden")}
       ref={cardHTMLElementRef}
     >
-      {status === "connected" && provider ? (
-        <div
-          className={cn(
-            isFocus ? "pointer-events-auto" : "pointer-events-none"
-          )}
-        >
+      {/** 卡片內容 */}
+      {provider ? (
+        <div>
           <CardEditorSketchPanel
-            isSketching={editMode === "sketch"}
-            cardId={cardDataRef.current.id}
+            cardId={initialCard.id}
             accountName={account?.name ?? "匿名貓貓"}
             doc={doc}
-            isUseApplePencil={isUseApplePencil}
-            sketchMode={sketchMode}
-            pencilInfo={pencilInfo}
-            eraserInfo={eraserInfo}
+            isActive={canvasEditorSettings.editMode === "sketch"}
+            {...canvasEditorSettings}
           />
           <CardEditorMarkdownEditor
-            cardId={cardDataRef.current.id}
+            cardId={initialCard.id}
             onContentSizeChange={onContentSizeChange}
             accountName={account?.name ?? "匿名貓貓"}
             provider={provider}
             doc={doc}
+            editable={isEditable}
           />
         </div>
       ) : (
         <div className=" p-8 text-white">與伺服器連線中...</div>
       )}
-      {isFocus && (
+      {/** 連線狀況指示器 */}
+      {status !== "connected" && (
+        <div className="pointer-events-none absolute right-2 top-2 text-gray-700 opacity-60 dark:text-white">
+          {status === "disconnected" ? "連線中斷" : "連線中..."}
+        </div>
+      )}
+      {/** 大小拖動邊界 */}
+      {isEditable && (
         <>
           <div
             ref={widthBorderHandleRef}
-            className="absolute right-0 top-0 h-[calc(100%-0.5rem)] w-2 cursor-ew-resize"
-          />
+            className="absolute right-0 top-0 flex h-[calc(100%-0.5rem)] w-2 cursor-ew-resize items-center"
+          >
+            <div className="h-8 w-full rounded-full bg-slate-100"></div>
+          </div>
           <div
             ref={heightBorderHandleRef}
             className="absolute bottom-0 left-0 h-2 w-[calc(100%-0.5rem)] cursor-ns-resize"
-          />
+          >
+            <div className="mx-auto h-full w-8 rounded-full bg-slate-100"></div>
+          </div>
           <div
             ref={cornerBorderHandleRef}
             className="absolute bottom-0 right-0 h-2 w-2 cursor-nwse-resize"
@@ -226,5 +200,3 @@ function CardEditor({
     </div>
   );
 }
-
-export default CardEditor;

@@ -19,6 +19,8 @@ import { type SaveSpaceCardPort } from "@/application/port/out/save-space-card-p
 import { type DeleteSpaceCardPort } from "@/application/port/out/delete-space-card-port";
 import { type DeleteManySpaceCardPort } from "@/application/port/out/delete-many-space-card-port";
 import { type LoadSpaceCardPort } from "@/application/port/out/load-space-card-port";
+import { type CreateCardListPort } from "@/application/port/out/create-card-list-port";
+import { type CreateSpaceCardListPort } from "@/application/port/out/create-space-card-list-port";
 
 // 持久層 實作
 import createMongoClientCollection from "@/adapter/out/persistence/mongo-db";
@@ -38,6 +40,8 @@ import SpaceListPersistenceLoadAdapter from "@/adapter/out/persistence/space-lis
 import SpacePersistenceDeleteAdapter from "@/adapter/out/persistence/space-persistence-delete-adapter";
 import SpacePersistenceLoadAdapter from "@/adapter/out/persistence/space-persistence-load-port";
 import SpacePersistenceSaveAdapter from "@/adapter/out/persistence/space-persistence-save-adapter";
+import CardListPersistenceSaveAdapter from "@/adapter/out/persistence/card-list-persistence-create-adapter";
+import SpaceCardListPersistenceSaveAdapter from "@/adapter/out/persistence/space-card-list-persistence-create-adapter";
 
 // 使用案例
 import accountLoginWithEmailUseCaseConstructor from "@/application/domain/service/account-login-with-email-service";
@@ -46,6 +50,7 @@ import accountRegisterUseCaseConstructor from "@/application/domain/service/acco
 import cardCreateUseCaseConstructor from "@/application/domain/service/card-create-service";
 import cardGetWithAllUseCaseConstructor from "@/application/domain/service/card-get-with-all-service";
 import cardModifyContentUseCaseConstructor from "@/application/domain/service/card-modify-content-service";
+import CardUpdateSnapshotContentUseCaseConstructor from "@/application/domain/service/card-update-snapshot-content-service";
 import cardModifyTitleUseCaseConstructor from "@/application/domain/service/card-modify-title-service";
 import cardGetByIdUseCaseConstructor from "@/application/domain/service/card-get-by-id-service";
 import cardModifySizeUseCaseConstructor from "@/application/domain/service/card-modify-size-service";
@@ -56,6 +61,7 @@ import cardDeleteUseCaseConstructor from "@/application/domain/service/card-dele
 import spaceCardCreateUseCaseConstructor from "@/application/domain/service/space-card-create-service";
 import spaceCardDeleteUseCaseConstructor from "@/application/domain/service/space-card-delete-service";
 import spaceCreateUseCaseConstructor from "@/application/domain/service/space-create-service";
+import spaceCreateWithBookUseCaseConstructor from "@/application/domain/service/space-create-with-book-service";
 import spaceDeleteUseCaseConstructor from "@/application/domain/service/space-delete-service";
 import spaceGetByIdUseCaseConstructor from "@/application/domain/service/space-get-by-id-service";
 import spaceGetWithAllUseCaseConstructor from "@/application/domain/service/space-get-with-all-use-case";
@@ -63,6 +69,9 @@ import spaceModifyTitleUseCaseConstructor from "@/application/domain/service/spa
 import spaceCardUpdatePositionUseCaseConstructor from "@/application/domain/service/space-card-update-position-service";
 import spaceCardUpdateLayerUseCaseConstructor from "@/application/domain/service/space-card-update-layer-service";
 import cardAddImageCaseConstructor from "@/application/domain/service/card-add-image-service";
+import linkSpaceCardConnectUseCaseConstructor from "@/application/domain/service/link-space-card-connect-service";
+import linkSpaceCardRemoveUseCaseConstructor from "@/application/domain/service/link-space-card-remove-service";
+import spaceCardGenerateWithMarkdownUseCaseConstructor from "@/application/domain/service/space-card-generate-with-markdown-service";
 
 // 路由
 import accountRegisterController from "@/adapter/in/fastify/account-register-controller";
@@ -76,8 +85,10 @@ import cardModifyContentController from "@/adapter/in/fastify/card-modify-conten
 import cardModifyTitleController from "@/adapter/in/fastify/card-modify-title-controller";
 import cardModifyPermissionController from "@/adapter/in/fastify/card-modify-permission-controller";
 import cardDeleteController from "@/adapter/in/fastify/card-delete-controller";
-import cardImmediateModifyContentController from "@/adapter/in/socket/card-immediate-modify-content-controller";
 import spaceCreateController from "@/adapter/in/fastify/space-create-controller";
+import spaceCreateWithMarkdownController from "@/adapter/in/fastify/space-create-with-markdown-controller";
+import spaceCreateWithPDFController from "@/adapter/in/fastify/space-create-with-pdf-controller";
+import spaceCreateWithUrlController from "@/adapter/in/fastify/space-create-with-url-controller";
 import spaceGetWithAllController from "@/adapter/in/fastify/space-get-with-all-controller";
 import spaceCardCreateController from "@/adapter/in/fastify/space-card-create-controller";
 import spaceCardDeleteController from "@/adapter/in/fastify/space-card-delete-controller";
@@ -86,13 +97,28 @@ import spaceGetByIdController from "@/adapter/in/fastify/space-get-by-id-control
 import spaceModifyTitleController from "@/adapter/in/fastify/space-modify-title-controller";
 import spaceCardImmediateUpdatePositionUseCaseController from "@/adapter/in/socket/space-card-immediate-update-position-controller";
 import CreateSocketEmitAdapter from "@/adapter/out/io/emit-socket-adapter";
-import cardModifyIsSizeFitContentController from "@/adapter/in/fastify/card-modify-is-size-fit-content-controller copy";
+import cardModifyIsSizeFitContentController from "@/adapter/in/fastify/card-modify-is-size-fit-content-controller";
 import cardModifySizeController from "@/adapter/in/fastify/card-modify-size-controller";
 import spaceCardUpdateLayerController from "@/adapter/in/fastify/space-card-update-layer-controller";
 import spaceCardListGetBySpaceIdUseCaseConstructor from "@/application/domain/service/space-card-list-get-by-id-service";
 import spaceCardListGetBySpaceIdController from "@/adapter/in/fastify/space-card-list-get-by-space-id-controller";
+import linkSpaceCardConnectController from "@/adapter/in/fastify/link-space-card-connect-controller";
+import linkSpaceCardRemoveController from "@/adapter/in/fastify/link-space-card-remove-controller";
+import ChatAdapter from "@/adapter/out/llm/chat-adapter";
+import spaceCardGenerateFromPdfUseController from "@/adapter/in/fastify/space-card-generate-from-pdf-controller";
+import spaceCardGenerateFromWebUseController from "@/adapter/in/fastify/space-card-generate-from-web-controller";
+import spaceCardGenerateFromMarkdownUseController from "@/adapter/in/fastify/space-card-generate-from-markdown-controller";
 
 async function init() {
+  // 初始化基礎設施
+  console.log("PORT", process.env.PORT);
+  const port = Number(process.env.PORT) || 8080;
+
+  const fastify = fastifyFactory(port);
+  const io = SocketIoFactory(fastify);
+  const ySocketIo = await YSocketIOFactory(io);
+  const emitSocket = CreateSocketEmitAdapter(io);
+
   // 初始化持久層
   const mongoCollections = await createMongoClientCollection();
   const loadAccount: LoadAccountPort =
@@ -125,6 +151,13 @@ async function init() {
     SpaceCardPersistenceDeleteAdapter(mongoCollections);
   const deleteManySpaceCard: DeleteManySpaceCardPort =
     SpaceCardPersistenceDeleteManyAdapter(mongoCollections);
+  const saveCardList: CreateCardListPort =
+    CardListPersistenceSaveAdapter(mongoCollections);
+  const saveSpaceCardList: CreateSpaceCardListPort =
+    SpaceCardListPersistenceSaveAdapter(mongoCollections);
+
+  // 初始化語言模型
+  const chatWithLLM = ChatAdapter;
 
   // 初始化 use case
   const accountRegisterUseCase = accountRegisterUseCaseConstructor(
@@ -145,6 +178,7 @@ async function init() {
     loadCard,
     saveCard
   );
+  CardUpdateSnapshotContentUseCaseConstructor(loadCard, saveCard, ySocketIo);
   const cardModifyTitleUseCase = cardModifyTitleUseCaseConstructor(
     loadCard,
     saveCard
@@ -179,6 +213,13 @@ async function init() {
     loadAccount,
     saveSpace
   );
+  const spaceCreateWithBookUseCase = spaceCreateWithBookUseCaseConstructor(
+    loadAccount,
+    saveSpace,
+    saveSpaceCardList,
+    saveCardList,
+    chatWithLLM
+  );
   const spaceDeleteUseCase = spaceDeleteUseCaseConstructor(
     loadSpace,
     deleteSpace
@@ -203,58 +244,83 @@ async function init() {
   );
   const spaceCardListGetBySpaceIdUseCase =
     spaceCardListGetBySpaceIdUseCaseConstructor(loadSpace, loadSpaceCardList);
-  // 初始化基礎設施
-  console.log("PORT", process.env.PORT);
-  const port = Number(process.env.PORT) || 8080;
-
-  const fastify = fastifyFactory(port);
-  const io = SocketIoFactory(fastify);
-  YSocketIOFactory(io);
-  const emitSocket = CreateSocketEmitAdapter(io);
+  const linkSpaceCardConnectUseCase = linkSpaceCardConnectUseCaseConstructor(
+    loadSpace,
+    loadSpaceCard,
+    saveSpaceCard
+  );
+  const linkSpaceCardRemoveUseCase = linkSpaceCardRemoveUseCaseConstructor(
+    loadSpace,
+    loadSpaceCard,
+    saveSpaceCard
+  );
+  const spaceCardGenerateWithMarkdownUseCase =
+    spaceCardGenerateWithMarkdownUseCaseConstructor(
+      loadSpace,
+      saveSpaceCardList,
+      saveCardList
+    );
 
   // 註冊 controller
-  fastify.after(() => {
-    accountRegisterController(fastify, accountRegisterUseCase);
-    accountLoginWithEmailController(fastify, accountLoginWithEmailUseCase);
-    accountMeController(fastify, accountGetInfoUseCase);
-    cardCreateController(fastify, cardCreateUseCase);
-    cardGetWithAllController(fastify, cardGetWithAllUseCase);
-    cardGetByIdController(fastify, cardGetByIdUseCase);
-    cardAddImageController(fastify, cardAddImageUseCase);
-    cardModifyContentController(fastify, cardModifyContentUseCase);
-    cardModifyTitleController(fastify, cardModifyTitleUseCase);
-    cardModifyPermissionController(fastify, cardModifyPermissionUseCase);
-    cardModifySizeController(fastify, [cardModifySizeUseCase, emitSocket]);
-    cardModifyIsSizeFitContentController(fastify, [
-      cardModifyIsSizeFitContentUseCase,
-      emitSocket,
-    ]);
-    cardDeleteController(fastify, [cardDeleteUseCase, emitSocket]);
-    spaceCreateController(fastify, spaceCreateUseCase);
-    spaceDeleteController(fastify, spaceDeleteUseCase);
-    spaceGetWithAllController(fastify, spaceGetWithAllUseCase);
-    spaceGetByIdController(fastify, spaceGetByIdUseCase);
-    spaceCardCreateController(fastify, [spaceCardCreateUseCase, emitSocket]);
-    spaceCardDeleteController(fastify, [spaceCardDeleteUseCase, emitSocket]);
-    spaceModifyTitleController(fastify, spaceModifyTitleUseCase);
-    spaceCardUpdateLayerController(fastify, [
-      spaceCardUpdateLayerUseCase,
-      emitSocket,
-    ]);
-    spaceCardListGetBySpaceIdController(
-      fastify,
-      spaceCardListGetBySpaceIdUseCase
-    );
-  });
+  accountRegisterController(fastify, accountRegisterUseCase);
+  accountLoginWithEmailController(fastify, accountLoginWithEmailUseCase);
+  accountMeController(fastify, accountGetInfoUseCase);
+  cardCreateController(fastify, cardCreateUseCase);
+  cardGetWithAllController(fastify, cardGetWithAllUseCase);
+  cardGetByIdController(fastify, cardGetByIdUseCase);
+  cardAddImageController(fastify, cardAddImageUseCase);
+  cardModifyContentController(fastify, cardModifyContentUseCase);
+  cardModifyTitleController(fastify, cardModifyTitleUseCase);
+  cardModifyPermissionController(fastify, cardModifyPermissionUseCase);
+  cardModifySizeController(fastify, [cardModifySizeUseCase, emitSocket]);
+  cardModifyIsSizeFitContentController(fastify, [
+    cardModifyIsSizeFitContentUseCase,
+    emitSocket,
+  ]);
+  cardDeleteController(fastify, [cardDeleteUseCase, emitSocket]);
+  spaceCreateController(fastify, spaceCreateUseCase);
+  spaceCreateWithMarkdownController(fastify, spaceCreateWithBookUseCase);
+  spaceCreateWithPDFController(fastify, spaceCreateWithBookUseCase);
+  spaceCreateWithUrlController(fastify, spaceCreateWithBookUseCase);
+  spaceDeleteController(fastify, spaceDeleteUseCase);
+  spaceGetWithAllController(fastify, spaceGetWithAllUseCase);
+  spaceGetByIdController(fastify, spaceGetByIdUseCase);
+  spaceCardCreateController(fastify, [spaceCardCreateUseCase, emitSocket]);
+  spaceCardDeleteController(fastify, [spaceCardDeleteUseCase, emitSocket]);
+  spaceModifyTitleController(fastify, spaceModifyTitleUseCase);
+  spaceCardUpdateLayerController(fastify, [
+    spaceCardUpdateLayerUseCase,
+    emitSocket,
+  ]);
+  spaceCardListGetBySpaceIdController(
+    fastify,
+    spaceCardListGetBySpaceIdUseCase
+  );
+  linkSpaceCardConnectController(fastify, [
+    linkSpaceCardConnectUseCase,
+    emitSocket,
+  ]);
+  linkSpaceCardRemoveController(fastify, [
+    linkSpaceCardRemoveUseCase,
+    emitSocket,
+  ]);
+  spaceCardGenerateFromPdfUseController(fastify, [
+    spaceCardGenerateWithMarkdownUseCase,
+    emitSocket,
+  ]);
+  spaceCardGenerateFromWebUseController(fastify, [
+    spaceCardGenerateWithMarkdownUseCase,
+    emitSocket,
+  ]);
+  spaceCardGenerateFromMarkdownUseController(fastify, [
+    spaceCardGenerateWithMarkdownUseCase,
+    emitSocket,
+  ]);
 
   fastify.ready((err) => {
     if (err) throw err;
 
     io.on("connection", (socket) => {
-      cardImmediateModifyContentController(socket, [
-        cardGetByIdUseCase,
-        cardModifyContentUseCase,
-      ]);
       spaceCardImmediateUpdatePositionUseCaseController(socket, [
         spaceCardUpdatePositionUseCase,
         emitSocket,
@@ -262,12 +328,21 @@ async function init() {
       socket.on("join-space", (room) => {
         socket.join(room);
       });
-      socket.on("disconnect", () => {
-        console.log("user disconnected");
-      });
     });
-    fastify.swagger();
+
+    if (process.env.NODE_ENV !== "PRODUCTION") {
+      fastify.swagger();
+    }
   });
+
+  fastify
+    .listen({
+      port,
+      host: "0.0.0.0",
+    })
+    .then((address) => {
+      console.log(`Server listening on ${address}`);
+    });
 }
 
 init();

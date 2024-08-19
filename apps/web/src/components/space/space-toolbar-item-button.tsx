@@ -15,8 +15,8 @@ const ToolbarItemButton = React.forwardRef(
     return (
       <button
         className={cn(
-          "flex h-12 w-12 cursor-pointer flex-col gap-1 items-center justify-center rounded text-white",
-          isFocused ? "bg-gray-700" : "bg-opacity-0",
+          "flex h-12 w-12 cursor-pointer flex-col gap-1 items-center justify-center rounded text-gray-500 dark:text-white",
+          isFocused ? " bg-gray-200 dark:bg-gray-700" : "bg-opacity-0",
           className
         )}
         {...props}

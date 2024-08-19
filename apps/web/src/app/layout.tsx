@@ -3,10 +3,9 @@ import type { Metadata } from "next";
 import { Noto_Sans_TC } from "next/font/google";
 import { Toaster } from "sonner";
 import { NextUIProvider } from "@/components/nextui";
+import ThemePreferenceController from "@/components/theme-preference-controller";
 import ReactQueryProvider from "@/providers/react-query";
-import { cn } from "@/utils/cn";
-import "./globals.css";
-
+import "@/styles/globals.css";
 
 const notoSansTC = Noto_Sans_TC({
   subsets: ["latin"],
@@ -31,8 +30,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }): JSX.Element {
   return (
-    <html lang="zh-Hant" data-color-mode="dark">
-      <body className={cn(notoSansTC.className, "dark")}>
+    <html lang="zh-Hant">
+      <head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0"
+        ></meta>
+      </head>
+      <body className={notoSansTC.className}>
+        <ThemePreferenceController />
         <NextUIProvider>
           <ReactQueryProvider>
             <Toaster position="top-right" richColors closeButton />

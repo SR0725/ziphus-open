@@ -39,17 +39,19 @@ function ReactQueryProvider({ children }: PropsWithChildren) {
             toast.error("檢測到一個錯誤，請檢查控制台");
           },
         }),
+        defaultOptions: {
+          queries: {
+            retry(failureCount, error) {
+              if ((error as any).status === 401) return false;
+              return failureCount < 3;
+            },
+          },
+        },
       })
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {PROJECT_ENV === "DEV" ||
-        (PROJECT_ENV === "LOCAL" && (
-          <ReactQueryDevtools initialIsOpen={false} />
-        ))}
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 

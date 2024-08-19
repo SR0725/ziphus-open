@@ -28,7 +28,7 @@ export default async function Page({
   }
 
   const title = data?.card?.title ?? "Ziphus Card Editor";
-  const description = data?.card?.content.substring(0, 157) ?? "Ziphus";
+  const description = data?.card?.snapshotContent.substring(0, 157) ?? "Ziphus";
 
   metadata.title = `${title} | Ziphus`;
   metadata.description = description;

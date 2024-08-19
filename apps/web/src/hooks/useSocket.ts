@@ -6,7 +6,7 @@ import { io, Socket } from "socket.io-client";
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const baseURL = process.env.NEXT_PUBLIC_API_ENDPOINT;
 
-let socket: Socket | null = null;
+const socketMap = new Map<string, Socket>();
 
 interface UseSocket {
   socketEmitWithAuth: (event: string, data: any) => void;
@@ -17,13 +17,14 @@ function useSocket(room?: string): UseSocket {
   if (typeof window === "undefined") {
     return { socketEmitWithAuth: () => {}, socket: null };
   }
+  const roomKey = room || "";
 
-  if (!socket) {
+  if (!socketMap.get(roomKey)) {
     if (!baseURL) {
       throw new Error("NEXT_PUBLIC_API_ENDPOINT is not defined");
     }
 
-    socket = io(baseURL, {
+    const socket = io(baseURL, {
       transports: ["websocket", "polling", "webtransport"],
       forceNew: true,
       auth: {
@@ -36,16 +37,19 @@ function useSocket(room?: string): UseSocket {
         socket?.emit("join-space", room);
       }
     });
+
+    socketMap.set(roomKey, socket);
   }
 
   const socketEmitWithAuth = (event: string, data: any) => {
+    const socket = socketMap.get(roomKey);
     socket?.emit(event, {
       ...data,
       authorization: getCookie("authorization"),
     });
   };
 
-  return { socketEmitWithAuth, socket };
+  return { socketEmitWithAuth, socket: socketMap.get(roomKey)! };
 }
 
 export default useSocket;

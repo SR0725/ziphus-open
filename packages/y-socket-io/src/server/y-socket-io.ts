@@ -48,6 +48,7 @@ export class YSocketIO extends Observable<string> {
         if (this.roomSocketListMap.has(roomName)) {
           const socketList = this.roomSocketListMap.get(roomName);
           if (socketList?.includes(socket.id)) {
+            socket.emit(`yjs-${roomName}-connected`);
             return;
           }
           socketList?.push(socket.id);

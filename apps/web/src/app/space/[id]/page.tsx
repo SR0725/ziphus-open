@@ -1,7 +1,11 @@
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import ResponsiveController from "@/components/responsive-controller";
 import Sidebar from "@/components/sidebar";
+import MobileSpaceEditor from "@/components/space/mobile-space-editor";
+import MobileSpaceFooterBar from "@/components/space/mobile-space-footer-bar";
+import MobileSpaceHeaderBar from "@/components/space/mobile-space-header-bar";
 import SpaceEditor from "@/components/space/space-editor";
 import SpaceHeaderBar from "@/components/space/space-header-bar";
 import {
@@ -36,7 +40,7 @@ export default async function Page({
   const title = `${data?.title} | Ziphus` ?? "Space Editor | Ziphus";
   const description =
     data?.spaceCards
-      .map((spaceCard) => spaceCard.card?.content ?? "")
+      .map((spaceCard) => spaceCard.card?.snapshotContent ?? "")
       .join("")
       .substring(0, 157) ?? "Ziphus";
 
@@ -60,14 +64,27 @@ export default async function Page({
   if (!data) {
     return <div>Space not found</div>;
   }
+
+  const deviceType = searchParams.isMobile === "true" ? "mobile" : "desktop";
+
   return (
-    <div className="min-w-screen flex h-full min-h-screen w-full overflow-hidden bg-[#0E0E0E]">
-      <Sidebar />
+    <div className="min-w-screen flex h-full min-h-screen w-full overflow-hidden bg-[#E5E5E5] dark:bg-[#0E0E0E]">
+      <ResponsiveController />
+      {deviceType === "desktop" && <Sidebar />}
       <div className="flex flex-1 flex-col">
-        <SpaceHeaderBar />
+        {deviceType === "mobile" ? (
+          <MobileSpaceHeaderBar />
+        ) : (
+          <SpaceHeaderBar />
+        )}
         <main className="h-full w-full">
-          <SpaceEditor initialSpace={data} />
+          {deviceType === "mobile" ? (
+            <MobileSpaceEditor initialSpace={data} />
+          ) : (
+            <SpaceEditor initialSpace={data} />
+          )}
         </main>
+        {deviceType === "mobile" && <MobileSpaceFooterBar />}
       </div>
     </div>
   );

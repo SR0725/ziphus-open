@@ -218,9 +218,15 @@ function useDraggable({
       return;
     }
 
-    container.addEventListener("dragover", (event) => {
+    const handleDragover = (event: Event) => {
       event.preventDefault();
-    });
+    };
+
+    container.addEventListener("dragover", handleDragover);
+
+    return () => {
+      container.removeEventListener("dragover", handleDragover);
+    };
   }, [containerRef]);
 
   return { isDraggingRef };

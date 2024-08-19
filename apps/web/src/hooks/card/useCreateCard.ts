@@ -7,14 +7,16 @@ import {
 } from "@tanstack/react-query";
 import axiosInstance from "@/utils/axios";
 
-async function fetchCreateCard() {
-  return await axiosInstance.post<CardCreateResponseDTO>("/card");
+export async function fetchCreateCard(initialContent?: string) {
+  return await axiosInstance.post<CardCreateResponseDTO>("/card", {
+    initialContent: initialContent,
+  });
 }
 
 function useCreateCard(): UseMutationResult<
   AxiosResponse<CardCreateResponseDTO>,
   unknown,
-  void,
+  string | undefined,
   unknown
 > {
   const queryClient = useQueryClient();

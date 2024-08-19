@@ -4,6 +4,7 @@ import * as Y from "yjs";
 import { SocketIOProvider } from "@repo/y-socket-io";
 import useSocket from "@/hooks/useSocket";
 
+
 function useYJSProvide(roomName: string) {
   const { socket } = useSocket();
 
@@ -13,6 +14,7 @@ function useYJSProvide(roomName: string) {
 
   useEffect(() => {
     if (!socket) return;
+    // delete old doc
     const newProvider = new SocketIOProvider(socket, roomName, doc, {
       auth: {
         authorization: getCookie("authorization"),
@@ -30,7 +32,7 @@ function useYJSProvide(roomName: string) {
       newProvider.disconnect();
       newProvider.destroy();
     };
-  }, []);
+  }, [roomName]);
 
   return {
     doc,

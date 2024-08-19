@@ -1,14 +1,17 @@
 import { randomUUID } from "node:crypto";
 import { type CardCreateUseCaseConstructor } from "@/application/port/in/card-create-use-case";
-import Card, { CardPermission } from "../model/card";
+import Card, { CardPermission, CardType } from "../model/card";
+import showdown from "showdown";
 
-const DEFAULT_CARD_PERMISSION = CardPermission.PublicEditable;
-const DEFAULT_CARD_WIDTH = 600;
-const DEFAULT_CARD_HEIGHT = 800;
+const converter = new showdown.Converter();
+
+export const DEFAULT_CARD_PERMISSION = CardPermission.PublicEditable;
+export const DEFAULT_CARD_WIDTH = 600;
+export const DEFAULT_CARD_HEIGHT = 128;
 
 const cardCreateUseCaseConstructor: CardCreateUseCaseConstructor =
   (loadAccount, saveCard) =>
-  async ({ accountId }) => {
+  async ({ accountId, initialContent }) => {
     const existingAccount = await loadAccount({ id: accountId });
     if (!existingAccount) {
       throw new Error("Unauthorized or Account not found");
@@ -19,12 +22,15 @@ const cardCreateUseCaseConstructor: CardCreateUseCaseConstructor =
       accountId,
       DEFAULT_CARD_PERMISSION,
       "",
-      "",
+      converter.makeHtml(initialContent ?? ""),
+      initialContent ?? "",
       DEFAULT_CARD_WIDTH,
       DEFAULT_CARD_HEIGHT,
       true,
       [],
       [],
+      CardType.note,
+      null,
       new Date().toISOString(),
       new Date().toISOString(),
       null

@@ -1,6 +1,7 @@
 import type { SaveSpaceCardPort } from "@/application/port/out/save-space-card-port";
 import type { MongoCollections } from "./mongo-db";
 import type { SpaceCard } from "./mongo-schema";
+import { Timer } from "@/common/timer";
 
 const MIN_SAVE_INTERVAL = 1000;
 interface SaveSpaceCardCommand {
@@ -9,6 +10,10 @@ interface SaveSpaceCardCommand {
 }
 
 const commandMap: Record<string, SaveSpaceCardCommand> = {};
+const timer = Timer(MIN_SAVE_INTERVAL);
+
+// TODO: 目前程式存在缺陷，如果在短時間內重複儲存相同的 SpaceCard，會導致 SpaceCard 被覆蓋
+// 不過考慮到 SpaceCard 簡單，不太會出現這種情況，所以暫時不處理
 
 const SpaceCardPersistenceSaveAdapter =
   ({
@@ -16,10 +21,27 @@ const SpaceCardPersistenceSaveAdapter =
     spaceCollection,
   }: MongoCollections): SaveSpaceCardPort =>
   async (spaceCard, needRealTime?: boolean) => {
+    if (needRealTime) {
+      await spaceCardCollection.updateOne(
+        { id: spaceCard.id },
+        { $set: spaceCard },
+        { upsert: true }
+      );
+
+      await spaceCollection.updateOne(
+        { id: spaceCard.targetSpaceId },
+        {
+          $addToSet: {
+            layers: spaceCard.id,
+          },
+        }
+      );
+      return;
+    }
     // 為了避免在短時間內重複儲存相同的 SpaceCard，我們會在這裡加入一個緩存機制
     commandMap[spaceCard.id] = {
       spaceCard,
-      saveTime: Date.now() + (needRealTime ? 0 : MIN_SAVE_INTERVAL),
+      saveTime: Date.now() + MIN_SAVE_INTERVAL,
     };
 
     async function handelCommand() {
@@ -71,9 +93,14 @@ const SpaceCardPersistenceSaveAdapter =
       needDealCommandIds.forEach((id) => {
         delete commandMap[id];
       });
+
+      timer.clear();
+      if (Object.keys(commandMap).length > 0) {
+        timer.start(handelCommand);
+      }
     }
 
-    needRealTime ? await handelCommand() : setTimeout(handelCommand, 5000);
+    timer.start(handelCommand);
   };
 
 export default SpaceCardPersistenceSaveAdapter;

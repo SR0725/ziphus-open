@@ -12,7 +12,6 @@ const SpaceCardPersistenceDeleteAdapter =
       id: spaceCard.id,
     });
 
-    console.log("spaceCard.id", spaceCard.id);
     await spaceCollection.updateMany(
       { layers: { $exists: true, $elemMatch: { $in: [spaceCard.id] } } },
       { $pull: { layers: spaceCard.id } }

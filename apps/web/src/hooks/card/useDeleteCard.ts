@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-query";
 import axiosInstance from "@/utils/axios";
 
-async function fetchDeleteCardTitle(cardId: string) {
+export async function fetchDeleteCardTitle(cardId: string) {
   return await axiosInstance.delete(`/card/${cardId}`);
 }
 
