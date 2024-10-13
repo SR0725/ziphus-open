@@ -31,6 +31,7 @@ function AccountRegisterForm() {
     handleSubmit,
     setValue,
     getValues,
+    watch,
     formState: { errors },
   } = useForm<AccountRegisterFormData>();
   const mutation = useMutation({
@@ -53,6 +54,7 @@ function AccountRegisterForm() {
   const onSubmit = handleSubmit((data) => {
     mutation.mutate(data);
   });
+  const confirmTermsAndPrivacy = watch("confirmTermsAndPrivacy");
 
   return (
     <form
@@ -119,10 +121,10 @@ function AccountRegisterForm() {
           onClick={() => {
             setValue(
               "confirmTermsAndPrivacy",
-              !getValues("confirmTermsAndPrivacy")
+              !confirmTermsAndPrivacy
             );
           }}
-          checked={getValues("confirmTermsAndPrivacy")}
+          checked={confirmTermsAndPrivacy}
         >
           註冊即表示您同意我們的{" "}
           <Link href="/terms" className="text-blue-500">
